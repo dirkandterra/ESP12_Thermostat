@@ -4,9 +4,11 @@
 #include <WString.h>
 
 extern String CurrentTemp;
+extern String CurrentDateTime;
 uint8_t Setup_wifi(void);
 void MQTT_Init(void);
 void MQTT_CheckConnection(uint32_t hb);
 void MQTT_SendHeartbeat(uint32_t hb);
 void MQTT_SendTemperature(float temp);
+void MQTT_SendSHTCTemperature(float temp);
 #endif

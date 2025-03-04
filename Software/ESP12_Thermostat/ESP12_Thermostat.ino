@@ -9,10 +9,11 @@
 #include "MQTT_DR.h"
 #include "GLCD12864.h"
 #include "DS3231.h"
+#include "DR_SHTC3.h"
 #include "secret.h"
 
 #define GLCD_PIN 16
-
+uint8_t firstTime=1;
 typedef struct _datetime{
   uint8_t hour;
   uint8_t minute;
@@ -26,18 +27,28 @@ void UpdateTime(datetime_T *DT);
 void UpdateTemp(datetime_T *DT);
 
 DS3231 myRTC;
+SHTC3 mySHTC3;
+
 float temp_f=0;
 datetime_T DT;
-char phrase[2][26]={{"Temp1: "},{"Temp2: "}};
+char phrase[2][26]={{"3231: "},{"SHTC: "}};
 uint8_t wifiConnected=0;
 uint32_t heartbeatCount=0;
 String str;
 
-
+void SHTC3_Init(){
+  //Wire.begin();
+  mySHTC3.begin(); 
+}
 
 void UpdateTime(){
+    if(CurrentDateTime!=""){
+      Serial.println(CurrentDateTime);
+      CurrentDateTime="";
+    }
     DT.minute=myRTC.getMinute();
-    if(DT.minute==0){
+    if(DT.minute==0 || firstTime){
+      firstTime=0;
       DT.hour=myRTC.getHour(DT.h12Flag,DT.pmFlag);
       DT.dow=myRTC.getDoW();
     }
@@ -45,11 +56,12 @@ void UpdateTime(){
 
 void UpdateTemp(){
   DT.temperature=(myRTC.getTemperature() * 9/5.0 + 32);
+  mySHTC3.update(); 
 }
 
 void getTime(){
   static int hbtime =0;
-  
+  float tempSHTC=mySHTC3.toDegF();
   hbtime++;
     if(hbtime>=30){
       heartbeatCount++;
@@ -58,11 +70,15 @@ void getTime(){
     }
     UpdateTime();
     UpdateTemp();
-    
-    MQTT_SendTemperature(DT.temperature);
-
+    if(hbtime%10==0){
+      MQTT_SendTemperature(DT.temperature);
+    }
+    else if(hbtime%5==0){
+      MQTT_SendSHTCTemperature(tempSHTC);
+    }
     Serial.print(DT.temperature,1);
     Serial.print("F - ");
+    Serial.println(tempSHTC);
     Serial.print(DT.hour);
     Serial.print(":");
     Serial.print(DT.minute);
@@ -77,6 +93,7 @@ void setup()
   Serial.begin(115200);
   wifiConnected=Setup_wifi();
   MQTT_Init();
+  SHTC3_Init();
   glcdInit(400000,GLCD_PIN);
 }
 
@@ -103,6 +120,12 @@ void loop()
   tempStr.toCharArray(charArray, tempStr.length() + 1);
   printPhrase(charArray);
   setCoord(0,2);
+  tempStr=String(mySHTC3.toDegF());
+  printPhrase(phrase[1]);
+  tempStr.toCharArray(charArray, tempStr.length() + 1);
+  printPhrase(charArray);
+  lcdCustomPrintChar('F');
+  setCoord(0,3);
   if(CurrentTemp!=""){
     CurrentTemp.toCharArray(charArray, CurrentTemp.length() + 1);
     printPhrase(charArray);

@@ -4,6 +4,8 @@
 #include "secret.h"
 
 String CurrentTemp;
+String CurrentDateTime;
+
 
 // Change the variable to your Raspberry Pi IP address, so it connects to your MQTT broker
 const char* mqtt_server = MQTT_SERVER;
@@ -55,7 +57,10 @@ void callback(String topic, byte* message, unsigned int length) {
   // If a message is received on the topic room/lamp, you check if the message is either on or off. Turns the lamp GPIO according to the message
   if(topic=="esp32/nowTemp"){
     CurrentTemp=messageTemp;
-      Serial.println(messageTemp);
+    Serial.println(messageTemp);
+  }
+  else if(topic=="esp32/nowDateTime"){
+    CurrentDateTime=messageTemp;
   }
 }
 
@@ -78,6 +83,12 @@ void MQTT_SendTemperature(float temp){
   client.publish("ThermESP12/ds3231",tempString);
 }
 
+void MQTT_SendSHTCTemperature(float temp){
+  char tempString[12];
+  dtostrf(temp,1,2,tempString);
+  client.publish("ThermESP12/SHTC",tempString);
+}
+
 // This functions reconnects your ESP8266 to your MQTT broker
 // Change the function below if you want to subscribe to more topics with your ESP8266 
 void MQTT_Reconnect(uint32_t hb) {
@@ -90,6 +101,7 @@ void MQTT_Reconnect(uint32_t hb) {
       // Subscribe or resubscribe to a topic
       // You can subscribe to more topics (to control more LEDs in this example)
       client.subscribe("esp32/nowTemp");
+      client.subscribe("esp32/nowDateTime");
       MQTT_SendHeartbeat(hb);
     } else {
       Serial.print("failed, rc=");
