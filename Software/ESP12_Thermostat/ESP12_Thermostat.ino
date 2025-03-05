@@ -10,27 +10,14 @@
 #include "GLCD12864.h"
 #include "DS3231.h"
 #include "DR_SHTC3.h"
+#include "Thermo.h"
 #include "secret.h"
 
 #define GLCD_PIN 16
 uint8_t firstTime=1;
-typedef struct _datetime{
-  uint8_t hour;
-  uint8_t minute;
-  uint8_t dow;
-  float temperature;
-  bool h12Flag;
-  bool pmFlag;
-}datetime_T;
 
-void UpdateTime(datetime_T *DT);
-void UpdateTemp(datetime_T *DT);
-
-DS3231 myRTC;
-SHTC3 mySHTC3;
 
 float temp_f=0;
-datetime_T DT;
 char phrase[2][26]={{"3231: "},{"SHTC: "}};
 uint8_t wifiConnected=0;
 uint32_t heartbeatCount=0;
@@ -38,47 +25,27 @@ String str;
 
 void SHTC3_Init(){
   //Wire.begin();
-  mySHTC3.begin(); 
-}
-
-void UpdateTime(){
-    if(CurrentDateTime!=""){
-      Serial.println(CurrentDateTime);
-      CurrentDateTime="";
-    }
-    DT.minute=myRTC.getMinute();
-    if(DT.minute==0 || firstTime){
-      firstTime=0;
-      DT.hour=myRTC.getHour(DT.h12Flag,DT.pmFlag);
-      DT.dow=myRTC.getDoW();
-    }
-}
-
-void UpdateTemp(){
-  DT.temperature=(myRTC.getTemperature() * 9/5.0 + 32);
-  mySHTC3.update(); 
+  
 }
 
 void getTime(){
   static int hbtime =0;
-  float tempSHTC=mySHTC3.toDegF();
   hbtime++;
     if(hbtime>=30){
       heartbeatCount++;
       MQTT_SendHeartbeat(heartbeatCount);
       hbtime=0;
     }
-    UpdateTime();
-    UpdateTemp();
+
     if(hbtime%10==0){
       MQTT_SendTemperature(DT.temperature);
     }
     else if(hbtime%5==0){
-      MQTT_SendSHTCTemperature(tempSHTC);
+      MQTT_SendSHTCTemperature(DT.SHTCTemp);
     }
     Serial.print(DT.temperature,1);
     Serial.print("F - ");
-    Serial.println(tempSHTC);
+    Serial.println(DT.SHTCTemp);
     Serial.print(DT.hour);
     Serial.print(":");
     Serial.print(DT.minute);
@@ -93,7 +60,7 @@ void setup()
   Serial.begin(115200);
   wifiConnected=Setup_wifi();
   MQTT_Init();
-  SHTC3_Init();
+  ThermoInit();
   glcdInit(400000,GLCD_PIN);
 }
 
@@ -104,6 +71,7 @@ void loop()
   uint16_t page=0x0CB8;
   uint16_t x=0,y=0;
   char charArray[10];
+  ThermoUpdate();
   String tempStr= String(DT.temperature);
   Serial.println(tempStr);
   setCoord(0,7);
@@ -120,7 +88,7 @@ void loop()
   tempStr.toCharArray(charArray, tempStr.length() + 1);
   printPhrase(charArray);
   setCoord(0,2);
-  tempStr=String(mySHTC3.toDegF());
+  tempStr=String(DT.SHTCTemp);
   printPhrase(phrase[1]);
   tempStr.toCharArray(charArray, tempStr.length() + 1);
   printPhrase(charArray);

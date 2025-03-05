@@ -12,12 +12,6 @@ All rights reserved.
 #define FALSE 0
 #define TRUE 1
 
-// Set the appropriate digital I/O pin connections.
-// See the datasheet for more details.
-static const uint8_t RST_PIN = 8;  // pin 3 on DS1620
-static const uint8_t CLK_PIN = 9;  // pin 2 on DS1620
-static const uint8_t DQ_PIN  = 10;  // pin 1 on DS1620
-
 enum mode{
   MODE_OFF,
   MODE_HEAT,
