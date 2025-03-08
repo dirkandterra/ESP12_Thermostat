@@ -223,7 +223,7 @@ void lcdPrintChar(char c){
 void printPhrase(char *ph){
   int x=0;
   while(ph[x]!=0x00){
-    lcdCustomPrintChar(ph[x]);
+    lcdPrintChar(ph[x]);
     x++;
   }
 }

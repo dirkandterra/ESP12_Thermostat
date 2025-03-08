@@ -72,7 +72,7 @@ void loop()
   uint16_t x=0,y=0;
   char charArray[10];
   ThermoUpdate();
-  String tempStr= String(DT.temperature);
+  String tempStr= String(DT.temperature,2);
   Serial.println(tempStr);
   setCoord(0,7);
   lcdPrintChar(00+0x20);
@@ -82,9 +82,17 @@ void loop()
   printPhrase(phrase[0]);
   tempStr.toCharArray(charArray, tempStr.length() + 1);
   printPhrase(charArray);
-  lcdCustomPrintChar('F');
+  lcdPrintChar('F');
   setCoord(0,1);
-  tempStr= String(DT.hour) + ":" +String(DT.minute);
+  tempStr="";
+  if(DT.hour<10){
+    tempStr=" ";
+  }
+  tempStr+= String(DT.hour) + ":";
+  if(DT.minute<10){
+    tempStr+="0";
+  } 
+  tempStr+=String(DT.minute);
   tempStr.toCharArray(charArray, tempStr.length() + 1);
   printPhrase(charArray);
   setCoord(0,2);
@@ -92,12 +100,12 @@ void loop()
   printPhrase(phrase[1]);
   tempStr.toCharArray(charArray, tempStr.length() + 1);
   printPhrase(charArray);
-  lcdCustomPrintChar('F');
+  lcdPrintChar('F');
   setCoord(0,3);
   if(CurrentTemp!=""){
     CurrentTemp.toCharArray(charArray, CurrentTemp.length() + 1);
     printPhrase(charArray);
-    lcdCustomPrintChar('F');
+    lcdPrintChar('F');
   }
   setCoord(121,0);
   if(wifiConnected){
@@ -108,7 +116,7 @@ void loop()
 
   /*setCoord(0,0);
   for(y=32;y<132;y++){
-    lcdCustomPrintChar(y);
+    lcdPrintChar(y);
   }*/
   MQTT_CheckConnection(heartbeatCount);
 
