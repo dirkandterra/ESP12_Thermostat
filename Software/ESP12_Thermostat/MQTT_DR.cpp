@@ -3,7 +3,7 @@
 #include <PubSubClient.h>
 #include "secret.h"
 
-String CurrentTemp;
+float CurrentTemp = -459.68;
 String CurrentDateTime;
 
 
@@ -56,7 +56,7 @@ void callback(String topic, byte* message, unsigned int length) {
 
   // If a message is received on the topic room/lamp, you check if the message is either on or off. Turns the lamp GPIO according to the message
   if(topic=="esp32/nowTemp"){
-    CurrentTemp=messageTemp;
+    CurrentTemp=messageTemp.toFloat();
     Serial.println(messageTemp);
   }
   else if(topic=="esp32/nowDateTime"){

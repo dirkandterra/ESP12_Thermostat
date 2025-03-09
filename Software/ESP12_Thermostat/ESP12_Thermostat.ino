@@ -28,7 +28,7 @@ void SHTC3_Init(){
   
 }
 
-void getTime(){
+void mqttSend(){
   static int hbtime =0;
   hbtime++;
     if(hbtime>=30){
@@ -43,14 +43,12 @@ void getTime(){
     else if(hbtime%5==0){
       MQTT_SendSHTCTemperature(DT.SHTCTemp);
     }
-    Serial.print(DT.temperature,1);
-    Serial.print("F - ");
-    Serial.println(DT.SHTCTemp);
-    Serial.print(DT.hour);
-    Serial.print(":");
-    Serial.print(DT.minute);
-    Serial.print(" ");
-    Serial.println(DT.dow);
+    //Serial.print(DT.temperature,1);
+    //Serial.print("F - ");
+    //Serial.println(DT.SHTCTemp);
+    Serial.print(Thermostat.setpoint);
+    Serial.print("-->");
+    Serial.println(Thermostat.beginTime);
 }
 
 
@@ -78,7 +76,7 @@ void loop()
   lcdPrintChar(00+0x20);
   setCoord(0,0);
   //Serial.println("Start");
-  getTime();
+  mqttSend();
   printPhrase(phrase[0]);
   tempStr.toCharArray(charArray, tempStr.length() + 1);
   printPhrase(charArray);
@@ -93,8 +91,14 @@ void loop()
     tempStr+="0";
   } 
   tempStr+=String(DT.minute);
+  tempStr+="   ";
   tempStr.toCharArray(charArray, tempStr.length() + 1);
   printPhrase(charArray);
+  if(Thermostat.status==HVAC_RUNNING){
+    lcdPrintChar('H');
+  }else{
+    lcdPrintChar('O');
+  }
   setCoord(0,2);
   tempStr=String(DT.SHTCTemp);
   printPhrase(phrase[1]);
@@ -102,8 +106,10 @@ void loop()
   printPhrase(charArray);
   lcdPrintChar('F');
   setCoord(0,3);
-  if(CurrentTemp!=""){
-    CurrentTemp.toCharArray(charArray, CurrentTemp.length() + 1);
+  if(CurrentTemp>-400){
+    CurrentTemp = (float)((uint16_t)(CurrentTemp*100))/100;   //get to 2 decimal places
+    tempStr=String(CurrentTemp);
+    tempStr.toCharArray(charArray, tempStr.length() + 1);
     printPhrase(charArray);
     lcdPrintChar('F');
   }

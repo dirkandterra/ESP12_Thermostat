@@ -64,7 +64,7 @@ typedef struct {
 
 extern Screen ScreenVars;
 extern uint8_t MainBanner[17];
-extern uint8_t dowText[8][4];
+extern const uint8_t dowText[8][4];
 
 extern const Keys MainKeys[];
 void updateTempsAndTime(void);

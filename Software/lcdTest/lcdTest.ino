@@ -8,7 +8,6 @@ void setup() {
   
   Serial.begin(115200);
   delay(1000);
-  Serial.println("Begin");
   LcdInit();
 }
 
@@ -32,5 +31,4 @@ void loop() {
   delay(2000);
   lcdClearText();
   delay(1000);
-  Serial.println("Again");
 }

@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <WString.h>
 
-extern String CurrentTemp;
+extern float CurrentTemp;
 extern String CurrentDateTime;
 uint8_t Setup_wifi(void);
 void MQTT_Init(void);

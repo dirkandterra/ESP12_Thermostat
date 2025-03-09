@@ -144,8 +144,6 @@ typedef struct {			// Definition of a 64 * 64 pixel bitmap:-
 	uint8_t data[8 * 60];	// - stream of pixels
 } ABitmap;
 
-extern const ABitmap SplashStartup; // in splash.h
-
 void SetDataDir(uint8_t in);
 void SetData(uint8_t n);
 

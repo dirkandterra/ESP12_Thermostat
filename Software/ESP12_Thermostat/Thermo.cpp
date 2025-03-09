@@ -26,6 +26,8 @@ float tempAvg=70;
 bool h12Flag;
 bool pmFlag;
 
+bool firstBootSetAutoTemp = true;
+
 datetime_T DT;
 thermostat_T Thermostat;
 
@@ -46,7 +48,12 @@ void UpdateTime(){
 void UpdateTemp(){
   DT.temperature=(myRTC.getTemperature() * 9/5.0 + 32);
   mySHTC3.update(); 
-  DT.SHTCTemp=mySHTC3.toDegF();
+  //DT.SHTCTemp=mySHTC3.toDegF();
+  if(Thermostat.heatRelay){
+    DT.SHTCTemp+=.05;
+  }else{
+    DT.SHTCTemp-=.01;
+  }
 }
 
 uint8_t timerRoutine(uint32_t timeNow, uint32_t timeTarget){
@@ -73,7 +80,10 @@ void setAutoTemp(uint16_t minutesAfterMidnight){
     dayTemp=Thermostat.dayTempCool;
     nightTemp=Thermostat.nightTempCool;
   }
-  if((minutesAfterMidnight>=Thermostat.beginTime && minutesAfterMidnight<Thermostat.endTime) && !(DT.dow==1 || DT.dow==7)) {
+  Serial.print(minutesAfterMidnight>=Thermostat.beginTime);
+  Serial.print(Thermostat.endTime);
+  Serial.println(!(DT.dow==1 || DT.dow==7));
+  if((minutesAfterMidnight>=Thermostat.beginTime) && (minutesAfterMidnight<Thermostat.endTime) && !(DT.dow==2 || DT.dow==7)) {
       Thermostat.setpoint=dayTemp;
   }else{
       Thermostat.setpoint=nightTemp;
@@ -95,7 +105,12 @@ void checkTime(){
       if(!lockout){
         setAutoTemp(minutesAfterMidnight);
       }
-    }else{
+    }else if(firstBootSetAutoTemp){
+      firstBootSetAutoTemp=false;
+      Serial.println("FirstBoot");
+      setAutoTemp(minutesAfterMidnight);
+    }
+    else{
       lockout=0;
       if(Thermostat.modeChanged){
         setAutoTemp(minutesAfterMidnight);
@@ -109,7 +124,7 @@ void checkTemperature(){
   if(timerRoutine(scanMillis,Thermostat.tempCheckTarget)){
     Thermostat.tempCheckTarget=scanMillis+INTERVAL_TEMPCHECK;
     UpdateTemp();
-    Thermostat.temp=DT.SHTCTemp;
+    Thermostat.temp=(uint16_t)(DT.SHTCTemp*10);
     validTemp=1;
     if(Thermostat.mode==MODE_OFF){
       Thermostat.heatRelay=0;
@@ -158,10 +173,13 @@ void ThermoInit()
  
   mySHTC3.begin();
   myRTC.setClockMode(FALSE);  //Military time
+  //myRTC.setHour(7);
+  //myRTC.setMinute(37);
+  //myRTC.setDoW(6);
   DT.hour=myRTC.getHour(h12Flag,pmFlag);
   DT.minute=myRTC.getMinute();
   DT.dow=myRTC.getDoW();
-  Thermostat.hyst=20;
+  Thermostat.hyst=15;
   Thermostat.mode=MODE_HEAT;
   Thermostat.dayTempHeat=730;
   Thermostat.nightTempHeat=580;
@@ -169,9 +187,9 @@ void ThermoInit()
   Thermostat.endTime=17.5*60;
   Thermostat.modeChanged=1;                //Force temps to be set after first time check
   setAutoTemp(DT.hour*60+DT.minute);
-  //myRTC.setHour(7);
-  //myRTC.setMinute(37);
-  //myRTC.setDoW(6);
+  DT.SHTCTemp=57;
+  Thermostat.mode=MODE_HEAT;
+  Thermostat.setpoint=580;
   pinMode(HEATRELAY,OUTPUT);
   pinMode(COOLRELAY,OUTPUT);
   //pinMode(FANRELAY,OUTPUT);

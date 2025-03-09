@@ -28,8 +28,8 @@ typedef struct _thermostat{
   uint8_t fanOn;
   uint16_t setpoint;
   uint16_t hyst;
-  uint8_t beginTime;    //in minutes after midnight        
-  uint8_t endTime;      //in minutes after midnight
+  uint16_t beginTime;    //in minutes after midnight        
+  uint16_t endTime;      //in minutes after midnight
   uint16_t dayTempCool;
   uint16_t nightTempCool;
   uint16_t dayTempHeat;

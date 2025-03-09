@@ -6,9 +6,10 @@
 #include "DR_screens.h"
 //#include "DR_keys.h"
 #include "lcd.h"
+#include "utils.h"
 #include <string.h>
 
-uint8_t dowText[8][4] = {"---","SUN","MON","TUE","WED","THU","FRI","SAT"};
+const uint8_t dowText[8][4] = {"---","SUN","MON","TUE","WED","THU","FRI","SAT"};
 
 Screen	ScreenVars;
 uint8_t g_CurrentScreen=0;

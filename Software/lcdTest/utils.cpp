@@ -11,6 +11,7 @@
 /********************************************************************/
 
 #include <string.h>
+#include <stdint.h>
 #include "utils.h"
 
 uint8_t sumbuffer(int8_t* buff, int16_t len) {
@@ -21,11 +22,11 @@ uint8_t sumbuffer(int8_t* buff, int16_t len) {
 }
 
 uint8_t xorbuffer(int8_t* buff, int16_t len) {
-	uint8_t xor = 0;
+	uint8_t xord = 0;
 
 	for (; len > 0; len--)
-		xor ^= *buff++;
-	return xor;
+		xord ^= *buff++;
+	return xord;
 
 }
 
@@ -257,6 +258,5 @@ int8_t atoi_c(int8_t ascii) {
 #endif
 
 void skipChar232_2(uint8_t skips, uint8_t ch){
-	Rx1_CircularBuffer.responseSkip=skips;
-	Rx1_CircularBuffer.charSkip=ch;
+
 }
