@@ -48,12 +48,7 @@ void UpdateTime(){
 void UpdateTemp(){
   DT.temperature=(myRTC.getTemperature() * 9/5.0 + 32);
   mySHTC3.update(); 
-  //DT.SHTCTemp=mySHTC3.toDegF();
-  if(Thermostat.heatRelay){
-    DT.SHTCTemp+=.05;
-  }else{
-    DT.SHTCTemp-=.01;
-  }
+  DT.SHTCTemp=mySHTC3.toDegF();
 }
 
 uint8_t timerRoutine(uint32_t timeNow, uint32_t timeTarget){
