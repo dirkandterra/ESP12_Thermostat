@@ -20,7 +20,7 @@ void loop() {
     //lcdDrawBitmap(0,0,(const ABitmap *) &bigFlame1);
     lcdDrawBitmap(0,32,(const ABitmap *) &bigFlake1);
     delay(500);
-    lcdDrawBitmap(0,0,(const ABitmap *) &bigFlame2);
+    //lcdDrawBitmap(0,0,(const ABitmap *) &bigFlame2);
     lcdDrawBitmap(0,32,(const ABitmap *) &bigFlake2);
     delay(500);
   }
