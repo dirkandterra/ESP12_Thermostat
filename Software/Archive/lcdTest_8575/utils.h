@@ -14,7 +14,7 @@ uint8_t sumbuffer(int8_t* buff, int16_t len);
 uint8_t xorbuffer(int8_t* buff, int16_t len);
 void strcpyn(uint8_t *dest, uint8_t *src, uint8_t maxlen);
 void convItoA(int8_t *string, int32_t number, int8_t *format);
-int32_t labs(int32_t value);
+//int32_t labs(int32_t value);
 double stringToInt(uint8_t *c, int len, int base, int pointerInc);
 char *strtokWEmptyCheck(char *s, char delim);
 #ifdef CodeChange_6_23_2022

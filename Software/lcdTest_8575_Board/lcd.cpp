@@ -14,8 +14,10 @@
 //#include "core.h"
 //#include "queue.h"
 //#include "hw.h"
-#include "lcd.h"
 #include <Arduino.h>
+#include "Wire.h"
+#include "lcd.h"
+#define pcfAddress 0x20
 //#include "splash.h"
 
 
@@ -38,6 +40,12 @@ static void LARGE_DrawString(int8_t * String, int16_t xpos, int16_t ypos,
 		bool invert);
 static void LARGE_PutChar(int8_t Char, int16_t xpos, int16_t ypos, bool invert);
 static void MED_PutChar(int8_t Char, int16_t xpos, int16_t ypos, bool invert);
+
+void SetData(uint8_t data_out);
+
+uint16_t PCF8575_DataDir = 0x8FFF;
+uint16_t PCF8575_DataCurrent = PCF8575_DataDir;
+uint16_t lastRead=0x00;
 
 const unsigned char color = 1;
 
@@ -66,114 +74,93 @@ const unsigned char BitReverseTable[256] = { 0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0,
 		0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7, 0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf,
 		0x6f, 0xef, 0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff };
 
+void printThis(uint8_t that){
+  Serial.println(that);
+  delay(100);
+}
+
+uint16_t read16()
+{
+  uint16_t _dataIn = 0;
+  if (Wire.requestFrom((uint8_t)pcfAddress, (uint8_t)2) != 2)
+  {
+    return lastRead;                   //  last value
+  }
+  _dataIn = Wire.read();            //  low 8 bits
+  _dataIn |= (Wire.read() << 8);    //  high 8 bits
+  lastRead=_dataIn;
+#ifdef DEBUGPRINT
+  Serial.print("Read: ");
+  Serial.println(_dataIn,HEX);
+#endif
+  return _dataIn;
+}
+
+uint8_t readKey(uint8_t channel){
+  switch(channel){
+    case 0:
+    digitalWrite(12,0);
+    break;
+    default:
+    digitalWrite(12,1);
+    break;
+  }
+  return (uint8_t)(read16()&0x000F);
+}
+
+bool write16(const uint16_t value)
+{
+  uint16_t dataOut = value;
+  Wire.beginTransmission(pcfAddress);
+  Wire.write(dataOut & 0xFF);      //  low 8 bits
+  Wire.write(dataOut >> 8);        //  high 8 bits
+#ifdef DEBUGPRINT
+  Serial.println(dataOut,HEX);
+#endif
+  return Wire.endTransmission();
+}
+
 void SetDataDir(uint8_t in) {
+	//set data lines for in or out
+  if(in){
+    PCF8575_DataDir |= 0x00FF; //PCF8575_DataDir |= 0x00FF;
+#ifdef DEBUGPRINT
+    Serial.print("DataDir In: ");
+#endif
+  }else{
+    PCF8575_DataDir &= 0xFF00; //PCF8575_DataDir &= 0xFF00;
+#ifdef DEBUGPRINT
+    Serial.print("DataDir Out: ");
+#endif
+  }
+  PCF8575_DataCurrent |= PCF8575_DataDir;
+#ifdef DEBUGPRINT
+  Serial.print(PCF8575_DataDir,HEX);
+  Serial.print("->");
+#endif
+  write16(PCF8575_DataCurrent);
 
-	if (in == 0) {
-		GLCD_DATA_OUTPUT
-	} else {
-		GLCD_DATA_INPUT
-	}
-
-} // End of: void SetDataDir(uint8_t in) {
+} 
 
 uint8_t GetData(void) {
 
+  uint16_t readData=0;
 	uint8_t read = 0;
-
-	if (GLCD_DATA_RD_0) {
-		read += 128;
-	}
-
-	if (GLCD_DATA_RD_1) {
-		read += 64;
-	}
-
-	if (GLCD_DATA_RD_2) {
-		read += 32;
-	}
-
-	if (GLCD_DATA_RD_3) {
-		read += 16;
-	}
-
-	if (GLCD_DATA_RD_4) {
-		read += 8;
-	}
-
-	if (GLCD_DATA_RD_5) {
-		read += 4;
-	}
-
-	if (GLCD_DATA_RD_6) {
-		read += 2;
-	}
-
-	if (GLCD_DATA_RD_7) {
-		read += 1;
-	}
+  read=(uint8_t)(read16() & 0x00FF);  //read=(uint8_t)(read16() & 0x00FF);
 
 	return read;
 
 } // End of: uint8_t GetData(void) {
 
 void SetData(uint8_t data_out) {
-
-	uint8_t d7 = (uint8_t) (data_out >> 0) & 1;
-	uint8_t d6 = (uint8_t) (data_out >> 1) & 1;
-	uint8_t d5 = (uint8_t) (data_out >> 2) & 1;
-	uint8_t d4 = (uint8_t) (data_out >> 3) & 1;
-	uint8_t d3 = (uint8_t) (data_out >> 4) & 1;
-	uint8_t d2 = (uint8_t) (data_out >> 5) & 1;
-	uint8_t d1 = (uint8_t) (data_out >> 6) & 1;
-	uint8_t d0 = (uint8_t) (data_out >> 7) & 1;
-
-	if (d0) {
-		GLCD_DATA_0_SET
-	} else {
-		GLCD_DATA_0_CLR
-	}
-
-	if (d1) {
-		GLCD_DATA_1_SET
-	} else {
-		GLCD_DATA_1_CLR
-	}
-
-	if (d2) {
-		GLCD_DATA_2_SET
-	} else {
-		GLCD_DATA_2_CLR
-	}
-
-	if (d3) {
-		GLCD_DATA_3_SET
-	} else {
-		GLCD_DATA_3_CLR
-	}
-
-	if (d4) {
-		GLCD_DATA_4_SET
-	} else {
-		GLCD_DATA_4_CLR
-	}
-
-	if (d5) {
-		GLCD_DATA_5_SET
-	} else {
-		GLCD_DATA_5_CLR
-	}
-
-	if (d6) {
-		GLCD_DATA_6_SET
-	} else {
-		GLCD_DATA_6_CLR
-	}
-
-	if (d7) {
-		GLCD_DATA_7_SET
-	} else {
-		GLCD_DATA_7_CLR
-	}
+#ifdef DEBUGPRINT
+  Serial.print(data_out,HEX);
+  Serial.print("->");
+#endif
+  PCF8575_DataCurrent &= 0xFF00; //PCF8575_DataCurrent &= 0xFF00;
+  PCF8575_DataCurrent |= data_out; //PCF8575_DataCurrent |= data_out;
+  write16(PCF8575_DataCurrent);
+	
 } // End of: void SetData(uint8_t data_out) {
 
 // ################################################################################################
@@ -184,7 +171,7 @@ void SetData(uint8_t data_out) {
 // ################################################################################################
 
 // ################################################################################################
-//
+//SetData
 // Delay function
 //	
 // ################################################################################################
@@ -206,14 +193,14 @@ static unsigned char GLCD_CheckStatus(void) {
   //return 0x03;
 	uint8_t status;
 	//GLCD_DATA_DDR = 0x00;  //Input
+  GLCD_RD_0;  //moved above
 	SetDataDir(1);
 
 	//GLCD_CTRL_PORT &= ~((1 << GLCD_RD) | (1 << GLCD_CE));
-	GLCD_RD_0;
 
 	GLCD_CE_0;
 	delayASM();
-	status = REVERSEBITS(GetData());
+	status = GetData();
 
 	GLCD_CE_1;
 
@@ -222,6 +209,10 @@ static unsigned char GLCD_CheckStatus(void) {
 
 	//GLCD_DATA_DDR = 0xFF; //Output
 	SetDataDir(0);
+#ifdef DEBUGPRINT
+  Serial.print("Status: ");
+  Serial.println(status);
+#endif
 	return status;
 } // End of: static unsigned char GLCD_CheckStatus(void) {
 
@@ -229,25 +220,27 @@ static unsigned char GLCD_CheckStatus(void) {
 //
 // Writes instruction 
 //
-// ################################################################################################
+// ################################################################################################GLCD_WriteCommand
 static void GLCD_WriteCommand(uint8_t command) {
 
-	while (!(GLCD_CheckStatus() & 0x03))
-		;
+	while (!(GLCD_CheckStatus() & 0x03));
 
 	//GLCD_DATA_DDR = 0xFF;  //Output
-	SetDataDir(0);
+	//SetDataDir(0);
 
 	//GLCD_DATA_PORT = REVERSEBITS(command);
-	SetData(REVERSEBITS(command));
+  GLCD_WR_0;  //Moved above
+#ifdef DEBUGPRINT
+  Serial.print("Write Cmd: ");
+#endif
+	SetData((command));
 
 	//GLCD_CTRL_PORT &= ~((1 << GLCD_WR) | (1 << GLCD_CE));
-	GLCD_WR_0;
 
 	GLCD_CE_0;
+  
 	delayASM();
 	GLCD_CE_1;
-
 	//GLCD_CTRL_PORT |= ((1 << GLCD_WR) | (1 << GLCD_CE));
 	GLCD_WR_1;
 
@@ -260,18 +253,21 @@ static void GLCD_WriteCommand(uint8_t command) {
 // ################################################################################################
 
 static void GLCD_WriteData(uint8_t data) {
-	while (!(GLCD_CheckStatus() & 0x03))
-		;
+	while (!(GLCD_CheckStatus() & 0x03));
 
 	//GLCD_DATA_DDR = 0xFF;  //Output
-	SetDataDir(0);
+	//SetDataDir(0);GLCD_CheckStatus
 
-	//GLCD_DATA_PORT = REVERSEBITS(data);
-	SetData(REVERSEBITS(data));
+  GLCD_WR_0;  //Moved above 
+	GLCD_CD_0;  //Moved above
+
+	//GLCD_DATA_PORT = (data);
+#ifdef DEBUGPRINT
+  Serial.print("Write Data: ");
+#endif
+	SetData((data));
 
 	//GLCD_CTRL_PORT &= ~((1 << GLCD_WR) | (1 << GLCD_CE) | (1 << GLCD_CD));
-	GLCD_WR_0;
-	GLCD_CD_0;
 
 	GLCD_CE_0;
 	delayASM();
@@ -290,21 +286,21 @@ static void GLCD_WriteData(uint8_t data) {
 // ################################################################################################
 static unsigned char GLCD_ReadData(void) {
 	uint8_t read;
-	while (!(GLCD_CheckStatus() & 0x03))
-		;
+	while (!(GLCD_CheckStatus() & 0x03));
+
+	GLCD_RD_0;  //Moved above
+	GLCD_CD_0; //Moved above
 
 	//GLCD_DATA_DDR = 0x00; //Input
 	SetDataDir(1);
 
 	//GLCD_CTRL_PORT &= ~((1 << GLCD_RD) | (1 << GLCD_CE) | (1 << GLCD_CD));
-	GLCD_RD_0;
-	GLCD_CD_0;
 
 	GLCD_CE_0;
 	delayASM();
 
 	//read = REVERSEBITS(GLCD_DATA_PORT);
-	read = REVERSEBITS(GetData());
+	read = GetData();
 
 	GLCD_CE_1;
 
@@ -475,8 +471,10 @@ static void GLCD_GraphicGoTo(uint8_t x, uint8_t y) {
 // Display initialization
 //
 //-------------------------------------------------------------------------------------------------
-void LcdInit(void) {
-
+void LcdInit(uint32_t clockRate) {
+  uint8_t i=0;
+  Wire.begin();
+  Wire.setClock(clockRate);
 	/*
 	 //Test LCD Wrtie Order
 	 //GLCD_DATA_DDR = 0xFF;  //Output
@@ -503,18 +501,22 @@ void LcdInit(void) {
 	 
 
 	 */
-	 
+	 delay(500);
 	 	// LCD control signals
-  DEFINE_PORTC;
-  DEFINE_PORTB;
+  pinMode(CE_Pin,OUTPUT);
+  pinMode(12,OUTPUT);
+  GLCD_CE_1;
+  delay(200);
 	GLCD_RS_0; //Reset LCD  
 	GLCD_WR_1;
 	GLCD_RD_1;
 	GLCD_CE_1;
-	GLCD_CD_1;	
-	SetDataDir (0);
+	GLCD_CD_1;
+  GLCD_RS_1; //Release Reset off LCD
+	SetDataDir(0);
+  Serial.println("Write Init01: ");
 	SetData(0);
-	GLCD_RS_1; //Release Reset off LCD
+  delay(200);
 	GLCD_WriteCommand(0xB2);
 	GLCD_WriteCommand(0xB2);
 	GLCD_WriteCommand(0xB2);
@@ -545,16 +547,30 @@ void LcdInit(void) {
 	GLCD_WriteCommand(T6963_SET_OFFSET_REGISTER);
 
 	GLCD_WriteCommand(
-			T6963_DISPLAY_MODE | T6963_GRAPHIC_DISPLAY_ON
+			T6963_DISPLAY_MODE | T6963_GRAPHIC_DISPLAY_ON | T6963_CURSOR_DISPLAY_ON | T6963_CURSOR_BLINK_ON
 					| T6963_TEXT_DISPLAY_ON);
 
 	GLCD_WriteCommand(T6963_MODE_SET | 0);
+  GLCD_WriteData(0x00);
+  GLCD_WriteData(0x00);
+  GLCD_WriteCommand(0x24);
+  
+  for(i=0x00; i<0x78; i++){
+    GLCD_WriteData(i);
+    GLCD_WriteCommand(0xC0);
+  }
+lcdClearGraphic();
 
+  delay(2000);
+  Serial.println("DoneInit2");
 	lcdClearText();
-
+Serial.println("DoneInit3");
 	GLCD_ClearCG();
-
+Serial.println("DoneInit4");
 	lcdClearGraphic();
+  Serial.println("DoneInit");
+
+  
 }
 
 // *****

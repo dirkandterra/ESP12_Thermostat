@@ -9,6 +9,7 @@
 #define SCREENS_H
 
 #include <stdint.h>
+#include "lcd.h"
 
 typedef enum {
 	TYPE_NONE = 0,

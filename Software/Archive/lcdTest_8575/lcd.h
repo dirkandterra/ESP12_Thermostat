@@ -14,60 +14,33 @@
 #define LCD_H
 
 #include <stdint.h>
-#include <avr/io.h>
 #define bool uint8_t
 #define False 0
 #define True 1
-#define XTALFREQ 16
-// LCD data port
-#define GLCD_DATA_RD_0 PINB & 0x01
-#define GLCD_DATA_RD_1 PINB & 0x02
-#define GLCD_DATA_RD_2 PIND & 0x04
-#define GLCD_DATA_RD_3 PIND & 0x08
-#define GLCD_DATA_RD_4 PIND & 0x10
-#define GLCD_DATA_RD_5 PIND & 0x20
-#define GLCD_DATA_RD_6 PIND & 0x40
-#define GLCD_DATA_RD_7 PIND & 0x80
+#define XTALFREQ 72
 
-#define BitSet(Port,Bit) (Port|=(1<<Bit))
-#define BitClear(Port,Bit) (Port&=~(1<<Bit))
-
-#define GLCD_DATA_0_SET BitSet(PORTB,0);
-#define GLCD_DATA_0_CLR BitClear(PORTB,0);
-#define GLCD_DATA_1_SET BitSet(PORTB,1);
-#define GLCD_DATA_1_CLR BitClear(PORTB,1);
-#define GLCD_DATA_2_SET BitSet(PORTD,2);
-#define GLCD_DATA_2_CLR BitClear(PORTD,2);
-#define GLCD_DATA_3_SET BitSet(PORTD,3);
-#define GLCD_DATA_3_CLR BitClear(PORTD,3);
-#define GLCD_DATA_4_SET BitSet(PORTD,4);
-#define GLCD_DATA_4_CLR BitClear(PORTD,4);
-#define GLCD_DATA_5_SET BitSet(PORTD,5);
-#define GLCD_DATA_5_CLR BitClear(PORTD,5);
-#define GLCD_DATA_6_SET BitSet(PORTD,6);
-#define GLCD_DATA_6_CLR BitClear(PORTD,6);
-#define GLCD_DATA_7_SET BitSet(PORTD,7);
-#define GLCD_DATA_7_CLR BitClear(PORTD,7);
-
-#define GLCD_DATA_INPUT   DDRD&=0b00000011;DDRB&=0b11111100;
-#define GLCD_DATA_OUTPUT  DDRD|=0b11111100;DDRB|=0b00000011;
-
-#define DEFINE_PORTC DDRC|=0b00110000
-#define DEFINE_PORTB DDRB|=0b00011100
+extern uint16_t PCF8575_DataDir;
+extern uint16_t PCF8575_DataCurrent;
 
 // time before reading in key's after setting
 #define WAITTIME 		2
 
-#define	GLCD_WR_1		BitSet(PORTC,5)     // WR	Data write (active low)
-#define	GLCD_WR_0		BitClear(PORTC,5)   
-#define	GLCD_RD_1		BitSet(PORTC,4)     // RD	Data read (active low)
-#define	GLCD_RD_0		BitClear(PORTC,4)
-#define	GLCD_CE_1		BitSet(PORTB,2)     // CE	Chip enable (active low)
-#define	GLCD_CE_0		BitClear(PORTB,2)
-#define	GLCD_CD_1		BitSet(PORTB,3)     // CD	CD=1, WR=0: command write
-#define	GLCD_CD_0		BitClear(PORTB,3)
-#define	GLCD_RS_1		BitSet(PORTB,4)     // RST	Module reset (active low)
-#define	GLCD_RS_0		BitClear(PORTB,4)
+#define WR 4
+#define RD 5
+#define CD 6
+#define RS 7
+#define CE_Pin 14
+
+#define	GLCD_WR_1		PCF8575_DataCurrent |= (0x0001<<WR)     // WR	Data write (active low)
+#define	GLCD_WR_0		PCF8575_DataCurrent &= ~(0x0001<<WR)  
+#define	GLCD_RD_1		PCF8575_DataCurrent |= (0x0001<<RD)     // RD	Data read (active low)
+#define	GLCD_RD_0		PCF8575_DataCurrent &= ~(0x0001<<RD)
+#define	GLCD_CE_1		digitalWrite(CE_Pin,1)      // CE	Chip enable (active low)
+#define	GLCD_CE_0		digitalWrite(CE_Pin,0)
+#define	GLCD_CD_1		PCF8575_DataCurrent |= (0x0001<<CD)      // CD	CD=1, WR=0: command write
+#define	GLCD_CD_0		PCF8575_DataCurrent &= ~(0x0001<<CD)
+#define	GLCD_RS_1		PCF8575_DataCurrent |= (0x0001<<RS)      // RST	Module reset (active low)
+#define	GLCD_RS_0		PCF8575_DataCurrent &= ~(0x0001<<RS)
 //      			                        CD=1, WR=1: command read
 //           	                            CD=0, WR=0: data write
 //                                          CD=0, WR=1: data read 
@@ -147,7 +120,7 @@ typedef struct {			// Definition of a 64 * 64 pixel bitmap:-
 void SetDataDir(uint8_t in);
 void SetData(uint8_t n);
 
-void LcdInit(void);
+void LcdInit(uint32_t clockRate);
 void lcdDrawBitmap(int16_t x1, int16_t y1, const ABitmap *bitmap);
 void lcdClearGraphic(void);
 void lcdClearText(void);
@@ -156,6 +129,8 @@ void lcdSetCursor(uint8_t row, uint8_t column);
 void lcdCursor(uint8_t OnOff, uint8_t flash);
 uint8_t lcdReadChar(int16_t x1, int16_t y1);
 void lcdDrawString(int16_t x1, int16_t y1, int8_t *value);
+void printThis(uint8_t that);
 
+uint8_t readKey(uint8_t channel);
 #endif
 

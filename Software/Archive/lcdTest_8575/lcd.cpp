@@ -96,6 +96,18 @@ uint16_t read16()
   return _dataIn;
 }
 
+uint8_t readKey(uint8_t channel){
+  switch(channel){
+    case 0:
+    digitalWrite(12,0);
+    break;
+    default:
+    digitalWrite(12,1);
+    break;
+  }
+  return (uint8_t)(read16()&0x000F);
+}
+
 bool write16(const uint16_t value)
 {
   uint16_t dataOut = value;
@@ -492,6 +504,7 @@ void LcdInit(uint32_t clockRate) {
 	 delay(500);
 	 	// LCD control signals
   pinMode(CE_Pin,OUTPUT);
+  pinMode(12,OUTPUT);
   GLCD_CE_1;
   delay(200);
 	GLCD_RS_0; //Reset LCD  
@@ -546,11 +559,10 @@ void LcdInit(uint32_t clockRate) {
   for(i=0x00; i<0x78; i++){
     GLCD_WriteData(i);
     GLCD_WriteCommand(0xC0);
-    delay(100);
   }
 lcdClearGraphic();
 
-  delay(10000);
+  delay(2000);
   Serial.println("DoneInit2");
 	lcdClearText();
 Serial.println("DoneInit3");

@@ -6178,8 +6178,8 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 <part name="H2" library="DR" deviceset="TERMBLOCK_5MM_2POS" device=""/>
 <part name="FAN_SW" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X2" device="" package3d_urn="urn:adsk.eagle:package:22435/2"/>
 <part name="GND11" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
-<part name="D4" library="DR" deviceset="DIODE" device="SOD123"/>
 <part name="KEYPAD" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X6" device="" package3d_urn="urn:adsk.eagle:package:22472/2"/>
+<part name="D4" library="DR" deviceset="DIODE" device="SOD123"/>
 <part name="D5" library="DR" deviceset="DIODE" device="SOD123"/>
 <part name="D6" library="DR" deviceset="DIODE" device="SOD123"/>
 </parts>
@@ -6338,21 +6338,18 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 <instance part="GND11" gate="1" x="154.94" y="58.42" smashed="yes">
 <attribute name="VALUE" x="152.4" y="55.88" size="1.778" layer="96"/>
 </instance>
-<instance part="D4" gate="G$1" x="127" y="104.14" smashed="yes" rot="R90">
-<attribute name="NAME" x="131.556" y="107.22" size="1.27" layer="95" rot="R180"/>
-<attribute name="VALUE" x="131.556" y="109.22" size="1.27" layer="96" rot="R180"/>
-</instance>
 <instance part="KEYPAD" gate="A" x="144.78" y="96.52" smashed="yes">
 <attribute name="NAME" x="138.43" y="107.315" size="1.778" layer="95"/>
 <attribute name="VALUE" x="138.43" y="86.36" size="1.778" layer="96"/>
 </instance>
-<instance part="D5" gate="G$1" x="127" y="99.06" smashed="yes" rot="R90">
-<attribute name="NAME" x="131.556" y="102.14" size="1.27" layer="95" rot="R180"/>
-<attribute name="VALUE" x="131.556" y="104.14" size="1.27" layer="96" rot="R180"/>
+<instance part="D4" gate="G$1" x="129.54" y="104.14" smashed="yes" rot="R270">
+<attribute name="NAME" x="124.984" y="101.06" size="1.27" layer="95"/>
 </instance>
-<instance part="D6" gate="G$1" x="127" y="93.98" smashed="yes" rot="R90">
-<attribute name="NAME" x="131.556" y="97.06" size="1.27" layer="95" rot="R180"/>
-<attribute name="VALUE" x="131.556" y="99.06" size="1.27" layer="96" rot="R180"/>
+<instance part="D5" gate="G$1" x="129.54" y="99.06" smashed="yes" rot="R270">
+<attribute name="NAME" x="124.984" y="95.98" size="1.27" layer="95"/>
+</instance>
+<instance part="D6" gate="G$1" x="129.54" y="93.98" smashed="yes" rot="R270">
+<attribute name="NAME" x="124.984" y="90.9" size="1.27" layer="95"/>
 </instance>
 </instances>
 <busses>
@@ -6641,8 +6638,8 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 <net name="PB1" class="0">
 <segment>
 <wire x1="124.46" y1="93.98" x2="116.84" y2="93.98" width="0.1524" layer="91"/>
-<pinref part="D6" gate="G$1" pin="A"/>
 <label x="116.84" y="93.98" size="1.778" layer="95"/>
+<pinref part="D6" gate="G$1" pin="C"/>
 </segment>
 <segment>
 <pinref part="U$1" gate="G$1" pin="GPIO14"/>
@@ -6658,15 +6655,15 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 </segment>
 <segment>
 <wire x1="124.46" y1="99.06" x2="116.84" y2="99.06" width="0.1524" layer="91"/>
-<pinref part="D5" gate="G$1" pin="A"/>
 <label x="116.84" y="99.06" size="1.778" layer="95"/>
+<pinref part="D5" gate="G$1" pin="C"/>
 </segment>
 </net>
 <net name="PB3" class="0">
 <segment>
 <wire x1="124.46" y1="104.14" x2="116.84" y2="104.14" width="0.1524" layer="91"/>
-<pinref part="D4" gate="G$1" pin="A"/>
 <label x="116.84" y="104.14" size="1.778" layer="95"/>
+<pinref part="D4" gate="G$1" pin="C"/>
 </segment>
 <segment>
 <pinref part="U$1" gate="G$1" pin="GPIO13"/>
@@ -6774,22 +6771,22 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 <net name="N$13" class="0">
 <segment>
 <pinref part="KEYPAD" gate="A" pin="1"/>
-<pinref part="D4" gate="G$1" pin="C"/>
 <wire x1="142.24" y1="104.14" x2="132.08" y2="104.14" width="0.1524" layer="91"/>
+<pinref part="D4" gate="G$1" pin="A"/>
 </segment>
 </net>
 <net name="N$14" class="0">
 <segment>
 <pinref part="KEYPAD" gate="A" pin="3"/>
-<pinref part="D5" gate="G$1" pin="C"/>
 <wire x1="142.24" y1="99.06" x2="132.08" y2="99.06" width="0.1524" layer="91"/>
+<pinref part="D5" gate="G$1" pin="A"/>
 </segment>
 </net>
 <net name="N$15" class="0">
 <segment>
 <pinref part="KEYPAD" gate="A" pin="5"/>
-<pinref part="D6" gate="G$1" pin="C"/>
 <wire x1="142.24" y1="93.98" x2="132.08" y2="93.98" width="0.1524" layer="91"/>
+<pinref part="D6" gate="G$1" pin="A"/>
 </segment>
 </net>
 </nets>

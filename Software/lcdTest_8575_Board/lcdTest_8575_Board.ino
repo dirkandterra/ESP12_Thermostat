@@ -30,6 +30,11 @@ void loop() {
   }
   ScreenDraw(0);
 Serial.println("G3");
+if(readKey(0)&0x08){
+  Serial.println("OFF");
+}else{
+  Serial.println("ON");
+}
   delay(2000);
   lcdClearGraphic();
   Serial.println("G4");

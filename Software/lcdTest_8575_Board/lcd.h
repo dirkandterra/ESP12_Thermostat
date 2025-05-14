@@ -18,6 +18,7 @@
 #define False 0
 #define True 1
 #define XTALFREQ 72
+//#define DEBUGPRINT
 
 extern uint16_t PCF8575_DataDir;
 extern uint16_t PCF8575_DataCurrent;
@@ -25,10 +26,10 @@ extern uint16_t PCF8575_DataCurrent;
 // time before reading in key's after setting
 #define WAITTIME 		2
 
-#define WR 4
-#define RD 5
-#define CD 6
-#define RS 7
+#define WR 0x0C
+#define RD 0x0D
+#define CD 0x0E
+#define RS 0x0F
 #define CE_Pin 14
 
 #define	GLCD_WR_1		PCF8575_DataCurrent |= (0x0001<<WR)     // WR	Data write (active low)
@@ -131,5 +132,6 @@ uint8_t lcdReadChar(int16_t x1, int16_t y1);
 void lcdDrawString(int16_t x1, int16_t y1, int8_t *value);
 void printThis(uint8_t that);
 
+uint8_t readKey(uint8_t channel);
 #endif
 

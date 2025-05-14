@@ -9,6 +9,8 @@
 #include "utils.h"
 #include <string.h>
 
+
+
 const uint8_t dowText[8][4] = {"---","SUN","MON","TUE","WED","THU","FRI","SAT"};
 
 Screen	ScreenVars;
@@ -24,19 +26,19 @@ const uint8_t label_SHTC[6]="SHTC:";
  
 const ScreenObj	MainMenuObj[]=
 {
-	{TYPE_LABEL, NULL, (uint8_t *)&MainBanner, NULL, NULL, 1, 0}, 
+	{TYPE_LABEL, (uint32_t)NULL, (uint8_t *)&MainBanner, (uint32_t)NULL, (uint32_t)NULL, 1, 0}, 
 	
-    {TYPE_LABEL, NULL, (uint8_t *)&label_3231, NULL, NULL, 1, 1},
-    {TYPE_UINT_16, (uint8_t *)"%4.1d", (uint8_t *)&ScreenVars.DS3231Temp, NULL, NULL, 7, 1},
-	{TYPE_LABEL, NULL, (uint8_t *)&unitF, NULL, NULL, 12, 1},
+    {TYPE_LABEL, (uint32_t)NULL, (uint8_t *)&label_3231, (uint32_t)NULL, (uint32_t)NULL, 1, 1},
+    {TYPE_UINT_16, (uint8_t *)"%4.1d", (uint8_t *)&ScreenVars.DS3231Temp, (uint32_t)NULL, (uint32_t)NULL, 7, 1},
+	{TYPE_LABEL, NULL, (uint8_t *)&unitF, (uint32_t)NULL, (uint32_t)NULL, 12, 1},
      
-    {TYPE_LABEL, NULL, (uint8_t *)&label_SHTC, NULL, NULL, 1, 2},
-    {TYPE_UINT_16, (uint8_t *)"%4.1d", (uint8_t *)&ScreenVars.SHTCTemp, NULL, NULL, 7, 2},
-	{TYPE_LABEL, NULL, (uint8_t *)&unitF, NULL, NULL, 12, 2},
+    {TYPE_LABEL, NULL, (uint8_t *)&label_SHTC, (uint32_t)NULL, (uint32_t)NULL, 1, 2},
+    {TYPE_UINT_16, (uint8_t *)"%4.1d", (uint8_t *)&ScreenVars.SHTCTemp, (uint32_t)NULL, (uint32_t)NULL, 7, 2},
+	{TYPE_LABEL, NULL, (uint8_t *)&unitF, (uint32_t)NULL, (uint32_t)NULL, 12, 2},
 
-    {TYPE_STRING, (uint8_t *)&ScreenVars.TimeString, 0, 0, 5, 5, 4},
+    {TYPE_SINGLESTRING, NULL, (uint8_t *)&ScreenVars.TimeString, 0, 5, 5, 4},
       
-    {TYPE_OBJ_END, NULL, NULL, NULL, NULL, 0, 0}
+    {TYPE_OBJ_END, NULL, NULL, (uint32_t)NULL, (uint32_t)NULL, 0, 0}
 };
  /*
 const Keys MainMenuKeys[]=
@@ -63,7 +65,8 @@ void InitVolatileScreenVariables(void) {
 
 	ScreenVars.DS3231Temp = 0;
 	ScreenVars.SHTCTemp = 0;
-	ScreenVars.TimeString[0]=0;
+	ScreenVars.TimeString[0]=0x30;
+  ScreenVars.TimeString[1]=0x0;
 	ScreenVars.DateString[0]=0;
 
 } // End of: void InitVolatileScreenVariables(void) {
@@ -91,6 +94,7 @@ void ScreenDraw(uint8_t screen) {
 
 	i = 0;
 	while (CurrentMenu[i].type != TYPE_OBJ_END) {
+    printThis(i);
 		switch (CurrentMenu[i].type) {
 		case TYPE_LABEL:
 			lcdDrawString(CurrentMenu[i].Coords.x, CurrentMenu[i].Coords.y,
@@ -167,7 +171,7 @@ void ScreenDraw(uint8_t screen) {
 					(int8_t *) TempString);
 			break;
 		case TYPE_PHONE:
-			strcpy(TempString, CurrentMenu[i].Value);
+			strcpy((char *)&TempString, (char *)CurrentMenu[i].Value);
 			TempString[10] = 0x00;
 			lcdDrawString(CurrentMenu[i].Coords.x, CurrentMenu[i].Coords.y,
 					(int8_t *) TempString);
