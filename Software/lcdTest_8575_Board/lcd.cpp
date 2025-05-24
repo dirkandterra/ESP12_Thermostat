@@ -43,7 +43,7 @@ static void MED_PutChar(int8_t Char, int16_t xpos, int16_t ypos, bool invert);
 
 void SetData(uint8_t data_out);
 
-uint16_t PCF8575_DataDir = 0x8FFF;
+uint16_t PCF8575_DataDir = 0xF7FF;
 uint16_t PCF8575_DataCurrent = PCF8575_DataDir;
 uint16_t lastRead=0x00;
 
@@ -99,13 +99,27 @@ uint16_t read16()
 uint8_t readKey(uint8_t channel){
   switch(channel){
     case 0:
-    digitalWrite(12,0);
+    digitalWrite(2,1);
+    digitalWrite(15,1);
+    digitalWrite(16,0);
+    break;
+    case 1:
+    digitalWrite(2,1);
+    digitalWrite(15,0);
+    digitalWrite(16,1);
+    break;
+    case 2:
+    digitalWrite(2,0);
+    digitalWrite(15,1);
+    digitalWrite(16,1);
     break;
     default:
-    digitalWrite(12,1);
+    digitalWrite(2,1);
+    digitalWrite(15,1);
+    digitalWrite(16,1);
     break;
   }
-  return (uint8_t)(read16()&0x000F);
+  return (uint8_t)((read16()>>8)&0x000F);
 }
 
 bool write16(const uint16_t value)
@@ -505,6 +519,12 @@ void LcdInit(uint32_t clockRate) {
 	 	// LCD control signals
   pinMode(CE_Pin,OUTPUT);
   pinMode(12,OUTPUT);
+  pinMode(15, OUTPUT);
+  pinMode(16, OUTPUT);
+  pinMode(2, OUTPUT);
+  digitalWrite(2,1);
+  digitalWrite(15,1);
+  digitalWrite(16,1);
   GLCD_CE_1;
   delay(200);
 	GLCD_RS_0; //Reset LCD  

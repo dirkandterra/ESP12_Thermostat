@@ -30,7 +30,7 @@ void loop() {
   }
   ScreenDraw(0);
 Serial.println("G3");
-if(readKey(0)&0x08){
+if(readKey(2)&0x04){
   Serial.println("OFF");
 }else{
   Serial.println("ON");
