@@ -565,7 +565,7 @@ lcdClearGraphic();
   Serial.println("DoneInit2");
 	lcdClearText();
 Serial.println("DoneInit3");
-	GLCD_ClearCG();
+	//GLCD_ClearCG();
 Serial.println("DoneInit4");
 	lcdClearGraphic();
   Serial.println("DoneInit");
