@@ -5,66 +5,51 @@ Copyright (c) 2011, Matt Sparks
 All rights reserved.
 */
 #include <stdlib.h>
-#include "DS1620.h"
+#include "Thermo.h"
+#include "DR_SHTC3.h"
 #include <DS3231.h>
 #include <Wire.h>
 
 #define FALSE 0
 #define TRUE 1
+#define HEATRELAY 12
+#define COOLRELAY 13
 
-enum mode{
-  MODE_OFF,
-  MODE_HEAT,
-  MODE_COOL
-};
-enum status{
-  HVAC_OFF,
-  HVAC_RUNNING
-};
 #define INTERVAL_TIMECHECK 500
 #define INTERVAL_TEMPCHECK 2000
 
 uint32_t scanMillis=0;
 uint8_t validTemp=0;
-DS3231 myRTC;
 
 float tempAvg=70;
 
 bool h12Flag;
 bool pmFlag;
 
-DS1620 ds1620(RST_PIN, CLK_PIN, DQ_PIN);
+bool firstBootSetAutoTemp = true;
 
-typedef struct _thermostat{
-  uint16_t temp;
-  uint8_t mode; //0=Off 1=Heat 2=Cool
-  uint8_t status; //0=Not Running 1=Running
-  uint8_t modeChanged;
-  uint8_t hold;
-  uint8_t fanOn;
-  uint16_t setpoint;
-  uint16_t hyst;
-  uint8_t beginTime;    //in minutes after midnight        
-  uint8_t endTime;      //in minutes after midnight
-  uint16_t dayTempCool;
-  uint16_t nightTempCool;
-  uint16_t dayTempHeat;
-  uint16_t nightTempHeat;
-  uint8_t tempSamples;
-  uint8_t heatRelay;
-  uint8_t coolRelay;
-  uint8_t fanRelay;
-  uint32_t tempCheckTarget;
-}thermostat_T;
+datetime_T DT;
 thermostat_T Thermostat;
 
-typedef struct _datetime{
-  uint8_t hour;
-  uint8_t minute;
-  uint8_t dow;
-  uint32_t timeCheckTarget;
-}datetime_T;
-datetime_T DT;
+DS3231 myRTC;
+SHTC3 mySHTC3;
+
+void UpdateTime();
+void UpdateTemp();
+
+void UpdateTime(){
+    DT.minute=myRTC.getMinute();
+    if(DT.minute==0){
+      DT.hour=myRTC.getHour(DT.h12Flag,DT.pmFlag);
+      DT.dow=myRTC.getDoW();
+    }
+}
+
+void UpdateTemp(){
+  DT.temperature=(myRTC.getTemperature() * 9/5.0 + 32);
+  mySHTC3.update(); 
+  DT.SHTCTemp=mySHTC3.toDegF();
+}
 
 uint8_t timerRoutine(uint32_t timeNow, uint32_t timeTarget){
   if(timeNow>=timeTarget){
@@ -90,7 +75,10 @@ void setAutoTemp(uint16_t minutesAfterMidnight){
     dayTemp=Thermostat.dayTempCool;
     nightTemp=Thermostat.nightTempCool;
   }
-  if((minutesAfterMidnight>=Thermostat.beginTime && minutesAfterMidnight<Thermostat.endTime) && !(DT.dow==1 || DT.dow==7)) {
+  Serial.print(minutesAfterMidnight>=Thermostat.beginTime);
+  Serial.print(Thermostat.endTime);
+  Serial.println(!(DT.dow==1 || DT.dow==7));
+  if((minutesAfterMidnight>=Thermostat.beginTime) && (minutesAfterMidnight<Thermostat.endTime) && !(DT.dow==2 || DT.dow==7)) {
       Thermostat.setpoint=dayTemp;
   }else{
       Thermostat.setpoint=nightTemp;
@@ -102,11 +90,7 @@ void checkTime(){
   uint16_t minutesAfterMidnight=0;
   if(timerRoutine(scanMillis,DT.timeCheckTarget)){
     DT.timeCheckTarget=scanMillis+INTERVAL_TIMECHECK;
-    DT.minute=myRTC.getMinute();
-    if(DT.minute==0){
-      DT.hour=myRTC.getHour(h12Flag,pmFlag);
-      DT.dow=myRTC.getDoW();
-    }
+    UpdateTime();
     minutesAfterMidnight=DT.hour*60+DT.minute;
     if(minutesAfterMidnight==Thermostat.beginTime){
       if(!lockout){
@@ -116,7 +100,12 @@ void checkTime(){
       if(!lockout){
         setAutoTemp(minutesAfterMidnight);
       }
-    }else{
+    }else if(firstBootSetAutoTemp){
+      firstBootSetAutoTemp=false;
+      Serial.println("FirstBoot");
+      setAutoTemp(minutesAfterMidnight);
+    }
+    else{
       lockout=0;
       if(Thermostat.modeChanged){
         setAutoTemp(minutesAfterMidnight);
@@ -129,7 +118,8 @@ void checkTime(){
 void checkTemperature(){
   if(timerRoutine(scanMillis,Thermostat.tempCheckTarget)){
     Thermostat.tempCheckTarget=scanMillis+INTERVAL_TEMPCHECK;
-    Thermostat.temp=(myRTC.getTemperature() * 9/5.0 + 32)*10;
+    UpdateTemp();
+    Thermostat.temp=(uint16_t)(DT.SHTCTemp*10);
     validTemp=1;
     if(Thermostat.mode==MODE_OFF){
       Thermostat.heatRelay=0;
@@ -155,8 +145,9 @@ void checkTemperature(){
     }else{
       Thermostat.status=HVAC_OFF;
     }
-    digitalWrite(4,Thermostat.heatRelay);
-    tempAvg=tempAvg*.95+(ds1620.temp_c() * 9/5.0 + 32)*.05;
+    digitalWrite(HEATRELAY,Thermostat.heatRelay);
+    digitalWrite(COOLRELAY,Thermostat.coolRelay);
+    tempAvg=tempAvg*.95+DT.SHTCTemp*.05;
     Serial.print(tempAvg);
     Serial.print(">>");
     Serial.print(Thermostat.temp);
@@ -170,21 +161,20 @@ void checkTemperature(){
   }
 }
 
-void setup()
+void ThermoInit()
 {
 	// Start the I2C interface
 	Wire.begin();
  
-	// Start the serial interface
-	Serial.begin(115200);
-  delay(100);
-
-  ds1620.config();
+  mySHTC3.begin();
   myRTC.setClockMode(FALSE);  //Military time
+  //myRTC.setHour(7);
+  //myRTC.setMinute(37);
+  //myRTC.setDoW(6);
   DT.hour=myRTC.getHour(h12Flag,pmFlag);
   DT.minute=myRTC.getMinute();
   DT.dow=myRTC.getDoW();
-  Thermostat.hyst=20;
+  Thermostat.hyst=15;
   Thermostat.mode=MODE_HEAT;
   Thermostat.dayTempHeat=730;
   Thermostat.nightTempHeat=580;
@@ -192,17 +182,17 @@ void setup()
   Thermostat.endTime=17.5*60;
   Thermostat.modeChanged=1;                //Force temps to be set after first time check
   setAutoTemp(DT.hour*60+DT.minute);
-  //myRTC.setHour(7);
-  //myRTC.setMinute(37);
-  //myRTC.setDoW(6);
-  pinMode(4,OUTPUT);
+  DT.SHTCTemp=57;
+  Thermostat.mode=MODE_HEAT;
+  Thermostat.setpoint=580;
+  pinMode(HEATRELAY,OUTPUT);
+  pinMode(COOLRELAY,OUTPUT);
+  //pinMode(FANRELAY,OUTPUT);
 }
 
-void loop()
+void ThermoUpdate()
 {
   scanMillis=millis();
-  const float temp_f = ds1620.temp_c() * 9/5.0 + 32;
-  const float rtcTemp_f = myRTC.getTemperature() * 9/5.0 + 32;
 
   checkTemperature();
   checkTime();
