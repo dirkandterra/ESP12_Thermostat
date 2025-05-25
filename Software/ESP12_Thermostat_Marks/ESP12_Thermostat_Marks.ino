@@ -23,11 +23,6 @@ uint8_t wifiConnected=0;
 uint32_t heartbeatCount=0;
 String str;
 
-void SHTC3_Init(){
-  //Wire.begin();
-  
-}
-
 void mqttSend(){
   static int hbtime =0;
   hbtime++;

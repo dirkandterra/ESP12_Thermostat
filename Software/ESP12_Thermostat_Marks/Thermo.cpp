@@ -14,6 +14,7 @@ All rights reserved.
 #define TRUE 1
 #define HEATRELAY 12
 #define COOLRELAY 13
+#define FANRELAY  14
 
 #define INTERVAL_TIMECHECK 500
 #define INTERVAL_TEMPCHECK 2000
@@ -175,15 +176,16 @@ void ThermoInit()
   DT.minute=myRTC.getMinute();
   DT.dow=myRTC.getDoW();
   Thermostat.hyst=15;
-  Thermostat.mode=MODE_HEAT;
   Thermostat.dayTempHeat=730;
   Thermostat.nightTempHeat=580;
+  Thermostat.dayTempCool=720;
+  Thermostat.nightTempCool=850;
   Thermostat.beginTime=6.5*60;
   Thermostat.endTime=17.5*60;
   Thermostat.modeChanged=1;                //Force temps to be set after first time check
   setAutoTemp(DT.hour*60+DT.minute);
   DT.SHTCTemp=57;
-  Thermostat.mode=MODE_HEAT;
+  Thermostat.mode=MODE_COOL;
   Thermostat.setpoint=580;
   pinMode(HEATRELAY,OUTPUT);
   pinMode(COOLRELAY,OUTPUT);

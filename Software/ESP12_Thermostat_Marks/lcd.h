@@ -30,7 +30,7 @@ extern uint16_t PCF8575_DataCurrent;
 #define RD 0x0D
 #define CD 0x0E
 #define RS 0x0F
-#define CE_Pin 14
+#define CE_Pin 0
 
 #define	GLCD_WR_1		PCF8575_DataCurrent |= (0x0001<<WR)     // WR	Data write (active low)
 #define	GLCD_WR_0		PCF8575_DataCurrent &= ~(0x0001<<WR)  
