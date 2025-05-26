@@ -19,7 +19,8 @@ uint8_t firstTime=1;
 
 
 float temp_f=0;
-char phrase[2][10]={{"Out:"},{"Setpoint:"}};
+char phraseSp[10]="Setpoint:";
+char phraseOut[5]="Out:";
 char dow[8][4]={" ","Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 uint8_t wifiConnected=0;
 uint32_t heartbeatCount=0;
@@ -71,7 +72,7 @@ void loop()
   //Serial.println("Start");
   mqttSend();
   tempStr.toCharArray(charArray, tempStr.length() + 1);
-  lcdDrawString(0,0,(int8 *)phrase[1]);
+  lcdDrawString(0,0,(int8 *)phraseSp);
   lcdDrawString(10,0,(int8 *)charArray);
   tempStr=dow[DT.dow];
   tempStr+=" ";
@@ -83,7 +84,6 @@ void loop()
     tempStr+="0";
   } 
   tempStr+=String(DT.minute);
-  tempStr+="   ";
   tempStr.toCharArray(charArray, tempStr.length() + 1);
   lcdDrawString(0,7,(int8 *)charArray);
   if(Thermostat.status==HVAC_RUNNING){
@@ -103,7 +103,7 @@ void loop()
     CurrentTemp = (float)((uint16_t)(CurrentTemp*100))/100;   //get to 2 decimal places
     tempStr=String(CurrentTemp,0);
     tempStr.toCharArray(charArray, tempStr.length() + 1);
-    lcdDrawString(10,7,(int8_t *)phrase[0]);
+    lcdDrawString(10,7,(int8_t *)phraseOut);
     lcdDrawString(14,7,(int8 *)charArray);
   }
   lcdSetCursor(121,0);
