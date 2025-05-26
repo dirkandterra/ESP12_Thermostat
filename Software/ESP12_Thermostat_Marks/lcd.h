@@ -131,6 +131,7 @@ void lcdCursor(uint8_t OnOff, uint8_t flash);
 uint8_t lcdReadChar(int16_t x1, int16_t y1);
 void lcdWriteChar(int16_t x1, int16_t y1, uint8_t data);
 void lcdDrawString(int16_t x1, int16_t y1, int8_t *value);
+void LARGE_DrawString(int8_t * String, int16_t xpos, int16_t ypos,	bool invert);
 void printThis(uint8_t that);
 
 uint8_t readKey(uint8_t channel);

@@ -12,13 +12,15 @@
 #include "DR_SHTC3.h"
 #include "Thermo.h"
 #include "secret.h"
+#include "splash.h"
 
 #define GLCD_PIN 16
 uint8_t firstTime=1;
 
 
 float temp_f=0;
-char phrase[2][26]={{"3231: "},{"SHTC: "}};
+char phrase[2][10]={{"Out:"},{"Setpoint:"}};
+char dow[8][4]={" ","Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 uint8_t wifiConnected=0;
 uint32_t heartbeatCount=0;
 String str;
@@ -64,18 +66,17 @@ void loop()
   uint16_t x=0,y=0;
   char charArray[10];
   ThermoUpdate();
-  String tempStr= String(DT.temperature,2);
+  String tempStr= String((float)Thermostat.setpoint/10,1);
   Serial.println(tempStr);
-  lcdWriteChar(7,0,0x20);
   //Serial.println("Start");
   mqttSend();
-  lcdDrawString(0,0,(int8 *)phrase[0]);
   tempStr.toCharArray(charArray, tempStr.length() + 1);
-  lcdDrawString(7,0,(int8 *)charArray);
-  lcdWriteChar(13,0,'F');
-  tempStr="";
+  lcdDrawString(0,0,(int8 *)phrase[1]);
+  lcdDrawString(10,0,(int8 *)charArray);
+  tempStr=dow[DT.dow];
+  tempStr+=" ";
   if(DT.hour<10){
-    tempStr=" ";
+    tempStr+=" ";
   }
   tempStr+= String(DT.hour) + ":";
   if(DT.minute<10){
@@ -84,24 +85,26 @@ void loop()
   tempStr+=String(DT.minute);
   tempStr+="   ";
   tempStr.toCharArray(charArray, tempStr.length() + 1);
-  lcdDrawString(0,1,(int8 *)charArray);
+  lcdDrawString(0,7,(int8 *)charArray);
   if(Thermostat.status==HVAC_RUNNING){
-    lcdWriteChar(10,1,'H');
+    if(Thermostat.mode==MODE_COOL){
+      lcdDrawBitmap(120,32,(const ABitmap *) &bigFlake1);
+    }else{
+      lcdDrawBitmap(120,32,(const ABitmap *) &bigFlame1);
+    }
   }else{
-    lcdWriteChar(10,1,'O');
+    lcdDrawBitmap(120,32,(const ABitmap *) &eraseIcon);
   }
-  tempStr=String(DT.SHTCTemp);
-  lcdDrawString(0,2,(int8 *)phrase[1]);
+  tempStr=String(DT.SHTCTemp,1);
   tempStr.toCharArray(charArray, tempStr.length() + 1);
-  lcdDrawString(7,2,(int8 *)charArray);
-  lcdWriteChar(13,2,'F');
+  LARGE_DrawString((int8 *)charArray,32,24,0);
   
   if(CurrentTemp>-400){
     CurrentTemp = (float)((uint16_t)(CurrentTemp*100))/100;   //get to 2 decimal places
-    tempStr=String(CurrentTemp);
+    tempStr=String(CurrentTemp,0);
     tempStr.toCharArray(charArray, tempStr.length() + 1);
-    lcdDrawString(0,3,(int8 *)charArray);
-    lcdWriteChar(8,3,'F');
+    lcdDrawString(10,7,(int8_t *)phrase[0]);
+    lcdDrawString(14,7,(int8 *)charArray);
   }
   lcdSetCursor(121,0);
   if(wifiConnected){

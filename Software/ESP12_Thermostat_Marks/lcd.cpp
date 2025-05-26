@@ -17,6 +17,7 @@
 #include <Arduino.h>
 #include "Wire.h"
 #include "lcd.h"
+#include "splash.h"
 #define pcfAddress 0x20
 //#include "splash.h"
 
@@ -35,8 +36,6 @@ static void GLCD_WriteDisplayData(uint8_t);
 uint8_t GetData(void);
 
 static void MED_DrawString(int8_t * String, int16_t xpos, int16_t ypos,
-		bool invert);
-static void LARGE_DrawString(int8_t * String, int16_t xpos, int16_t ypos,
 		bool invert);
 static void LARGE_PutChar(int8_t Char, int16_t xpos, int16_t ypos, bool invert);
 static void MED_PutChar(int8_t Char, int16_t xpos, int16_t ypos, bool invert);
@@ -487,6 +486,7 @@ static void GLCD_GraphicGoTo(uint8_t x, uint8_t y) {
 //-------------------------------------------------------------------------------------------------
 void LcdInit(uint32_t clockRate) {
   uint8_t i=0;
+  uint8_t ii=0;
   Wire.begin();
   Wire.setClock(clockRate);
 	/*
@@ -1264,7 +1264,6 @@ static const uint8_t FontDataMedium[38][10] = { { 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 #endif 
 
-#ifdef NotUsed // SaveForHistory/Future 
 // 21 x 16 font
 static const uint8_t FontDataLarge[12][21 * 2] = {
 
@@ -1746,7 +1745,50 @@ static const uint8_t FontDataLarge[12][21 * 2] = {
 		0x3f, 0xf0, 0x3f, 0xf0,
 
 		} };
-#endif
+
+static void LARGE_PutChar(int8_t Char, int16_t xpos, int16_t ypos, bool invert) {
+	uint8_t i;
+	uint8_t CharOffset;
+
+	if (Char == '.') {
+		CharOffset = 0;
+	} else if (Char == ' ') {
+		CharOffset = 1;
+	} else {
+		CharOffset = (Char - 0x30) + 2;
+	}
+
+	for (i = 0; i < GLCD_FONT_HEIGHT_LARGE; i++)
+		lcdWriteBytesAbsolute(xpos, ypos + i,
+				(const uint8_t *) &FontDataLarge[CharOffset][i * 2], 2, invert);
+}
+
+void LARGE_DrawString(int8_t * String, int16_t xpos, int16_t ypos,
+		bool invert) {
+	uint8_t exitme = 0;
+
+	// if the string will fit on the current line (height)
+	if (ypos + GLCD_FONT_HEIGHT_LARGE <= GLCD_NUMBER_OF_LINES) {
+		while ((*String != 0x0) && (exitme == 0)) {
+			// if the character is not in the font 1 list
+			if ((*String != '.') && (*String != ' ')
+					&& ((*String < '0') || (*String > '9')))
+				exitme = 1;
+
+			// if the character will fit on the current line (width)
+			if (xpos + GLCD_FONT_WIDTH_LARGE <= GLCD_PIXELS_PER_LINE) {
+				if (exitme == 0) {
+					// put the new character
+					LARGE_PutChar(*String, xpos, ypos, invert);
+				}
+			} else
+				exitme = 1;
+
+			xpos += GLCD_FONT_WIDTH_LARGE;
+			String++;
+		}
+	}
+}
 
 #ifdef NotUsed // SaveForHistory/Future 
 static void MED_DrawString(int8_t * String, int16_t xpos, int16_t ypos,
@@ -1776,49 +1818,6 @@ static void MED_DrawString(int8_t * String, int16_t xpos, int16_t ypos,
 	}
 }
 
-static void LARGE_DrawString(int8_t * String, int16_t xpos, int16_t ypos,
-		bool invert) {
-	uint8_t exitme = 0;
-
-	// if the string will fit on the current line (height)
-	if (ypos + GLCD_FONT_HEIGHT_LARGE <= GLCD_NUMBER_OF_LINES) {
-		while ((*String != 0x0) && (exitme == 0)) {
-			// if the character is not in the font 1 list
-			if ((*String != '.') && (*String != ' ')
-					&& ((*String < '0') || (*String > '9')))
-				exitme = 1;
-
-			// if the character will fit on the current line (width)
-			if (xpos + GLCD_FONT_WIDTH_LARGE <= GLCD_PIXELS_PER_LINE) {
-				if (exitme == 0) {
-					// put the new character
-					LARGE_PutChar(*String, xpos, ypos, invert);
-				}
-			} else
-				exitme = 1;
-
-			xpos += GLCD_FONT_WIDTH_LARGE;
-			String++;
-		}
-	}
-}
-
-static void LARGE_PutChar(int8_t Char, int16_t xpos, int16_t ypos, bool invert) {
-	uint8_t i;
-	uint8_t CharOffset;
-
-	if (Char == '.') {
-		CharOffset = 0;
-	} else if (Char == ' ') {
-		CharOffset = 1;
-	} else {
-		CharOffset = (Char - 0x30) + 2;
-	}
-
-	for (i = 0; i < GLCD_FONT_HEIGHT_LARGE; i++)
-		lcdWriteBytesAbsolute(xpos, ypos + i,
-				(const uint8_t *) &FontDataLarge[CharOffset][i * 2], 2, invert);
-}
 
 static void MED_PutChar(int8_t Char, int16_t xpos, int16_t ypos, bool invert) {
 	uint8_t i;
