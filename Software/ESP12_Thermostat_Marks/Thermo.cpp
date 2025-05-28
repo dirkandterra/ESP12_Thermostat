@@ -76,10 +76,13 @@ void setAutoTemp(uint16_t minutesAfterMidnight){
     dayTemp=Thermostat.dayTempCool;
     nightTemp=Thermostat.nightTempCool;
   }
+  Serial.print("**");
   Serial.print(minutesAfterMidnight>=Thermostat.beginTime);
+  Serial.print(" Off at ");
   Serial.print(Thermostat.endTime);
+  Serial.print(" Not weekend: ");
   Serial.println(!(DT.dow==1 || DT.dow==7));
-  if((minutesAfterMidnight>=Thermostat.beginTime) && (minutesAfterMidnight<Thermostat.endTime) && !(DT.dow==2 || DT.dow==7)) {
+  if((minutesAfterMidnight>=Thermostat.beginTime) && (minutesAfterMidnight<Thermostat.endTime) && !(DT.dow==1 || DT.dow==7)) {
       Thermostat.setpoint=dayTemp;
   }else{
       Thermostat.setpoint=nightTemp;

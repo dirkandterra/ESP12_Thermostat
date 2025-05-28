@@ -106,6 +106,11 @@ void loop()
     lcdDrawString(10,7,(int8_t *)phraseOut);
     lcdDrawString(14,7,(int8 *)charArray);
   }
+  if(IncomingSetTemp>49 && IncomingSetTemp<96){
+    Thermostat.dayTempCool = (uint16_t)(IncomingSetTemp*10);
+    Thermostat.modeChanged=1;
+    IncomingSetTemp=0;
+  }
   lcdSetCursor(121,0);
   if(wifiConnected){
     lcdWriteChar(15,0,'W');

@@ -4,6 +4,8 @@
 #include "secret.h"
 
 float CurrentTemp = -459.68;
+float IncomingSetTemp = 0;
+
 String CurrentDateTime;
 
 
@@ -62,6 +64,10 @@ void callback(String topic, byte* message, unsigned int length) {
   else if(topic=="esp32/nowDateTime"){
     CurrentDateTime=messageTemp;
   }
+  else if(topic=="ThermESP12/dayCoolTemp"){
+    IncomingSetTemp=messageTemp.toFloat();
+    Serial.println(IncomingSetTemp);
+  }
 }
 
 void MQTT_Init(void){
@@ -101,6 +107,7 @@ void MQTT_Reconnect(uint32_t hb) {
       // Subscribe or resubscribe to a topic
       // You can subscribe to more topics (to control more LEDs in this example)
       client.subscribe("esp32/nowTemp");
+      client.subscribe("ThermESP12/dayCoolTemp");
       client.subscribe("esp32/nowDateTime");
       MQTT_SendHeartbeat(hb);
     } else {

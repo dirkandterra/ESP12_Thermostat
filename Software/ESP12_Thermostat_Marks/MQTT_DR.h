@@ -4,6 +4,7 @@
 #include <WString.h>
 
 extern float CurrentTemp;
+extern float IncomingSetTemp;
 extern String CurrentDateTime;
 uint8_t Setup_wifi(void);
 void MQTT_Init(void);
