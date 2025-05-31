@@ -13,6 +13,7 @@
 #include "Thermo.h"
 #include "secret.h"
 #include "splash.h"
+#include "DR_screens.h"
 
 #define GLCD_PIN 16
 uint8_t firstTime=1;
@@ -125,6 +126,7 @@ void loop()
   MQTT_CheckConnection(heartbeatCount);
 
   delay(2000);
+  ScreenDraw(MENUMAIN);
   //InvertFont=!InvertFont;
   //C2, C1, RS, RW, 7-0
 

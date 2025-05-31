@@ -5,8 +5,8 @@
 
 #include "lcd.h"
 #include "utils.h"
-#include "screens.h"
-#include "keys.h"
+#include "DR_screens.h"
+#include "DR_keys.h"
 
 static uint32_t GetPrecision(uint8_t Row, uint8_t Column);
 static void MoveColumnRight(void);
@@ -84,7 +84,7 @@ void MoveScreen(uint8_t Left) {
 	ScreenDraw(g_CurrentMenu);
 } // End of: void MoveScreen(uint8_t Left) {
 
-void ProcessKeyPressController(AEvent event) {
+void ProcessKeyPressController(uint8_t key) {
 	uint8_t data;
 	uint8_t * pointer_eight;
 	uint16_t * pointer_sixteen;
@@ -92,7 +92,7 @@ void ProcessKeyPressController(AEvent event) {
 	uint32_t thirtytwo;
 	int8_t TempString[17];
 	int8_t DecimalString[5];
-	const Gadgets * CurrentGadget;
+	const ScreenObj * CurrentScreen;
 	uint32_t Precision;
 	int8_t * ptr;
 	uint8_t num;
@@ -102,20 +102,14 @@ void ProcessKeyPressController(AEvent event) {
 	//uint8_t atoiChar;
 	uint16_t adjustedRow = 0;
 
-	AdvMenuTimer = 0;
-
-	switch (event.parameter) {
+	switch (key) {
 	// ####################################
 	//
 	//  Key MENU
 	// ####################################
 	case KeyMenu:
-		if (g_CurrentMenu == MENUCLOCK) {
-			writeTimeReq = True;
-		}
 		//This will bring it to first screen of basic menu
-		if (g_CurrentMenu != EEPROMERR)
-			goToHome();
+		goToHome();
 		break;
 
 	// ####################################
@@ -176,8 +170,8 @@ void ProcessKeyPressController(AEvent event) {
 				if (data == '.') //Skip Decimal
 					CurrentColumn--;
 
-				CurrentGadget = (Gadgets *) CurrentKeys[CurrentRow].Value;
-				if (CurrentGadget->subtype == TYPE_PHONE) {
+				CurrentScreen = (ScreenObj *) CurrentKeys[CurrentRow].Value;
+				if (CurrentScreen->type == TYPE_PHONE) {
 					if (CurrentColumn != 15) {
 						// we can only move one empty space for phone numbers
 						data = lcdReadChar((int16_t) CurrentColumn + 1,
@@ -276,20 +270,20 @@ void ProcessKeyPressController(AEvent event) {
 				case MENUMAIN:
 					if (CurrentKeys[CurrentRow].KeyType == KEY) {
 						// we need to increase integer value																
-						CurrentGadget =
-								(Gadgets *) CurrentKeys[CurrentRow].Value;
+						CurrentScreen =
+								(ScreenObj *) CurrentKeys[CurrentRow].Value;
 
 						Precision = GetPrecision((uint8_t) CurrentRow,
 								(uint8_t) CurrentColumn);
 						ptr = TempString;
 
-						switch (CurrentGadget->subtype) {
+						switch (CurrentScreen->type) {
 						case TYPE_INT_8:
 						case TYPE_UINT_8:
-							pointer_eight = (uint8_t *) CurrentGadget->Value;
+							pointer_eight = (uint8_t *) CurrentScreen->Value;
 
 							if (((int16_t) *pointer_eight + Precision)
-									< CurrentGadget->MaxValue) {
+									< CurrentScreen->MaxValue) {
 								if (((int16_t) *pointer_eight + Precision)
 										/ (10 * Precision)
 										!= (int16_t) *pointer_eight
@@ -301,18 +295,18 @@ void ProcessKeyPressController(AEvent event) {
 							} else {
 
 								*pointer_eight =
-										(uint8_t) CurrentGadget->MaxValue;
+										(uint8_t) CurrentScreen->MaxValue;
 							}
 							convItoA(ptr, (uint8_t) *pointer_eight,
-									(int8_t *) CurrentGadget->Format_Or_Num);
+									(int8_t *) CurrentScreen->Format_Or_Num);
 							break;
 
 						case TYPE_INT_16:
 						case TYPE_UINT_16:
-							pointer_sixteen = (uint16_t *) CurrentGadget->Value;
+							pointer_sixteen = (uint16_t *) CurrentScreen->Value;
 
 							if ((*pointer_sixteen + Precision)
-									< CurrentGadget->MaxValue) {
+									< CurrentScreen->MaxValue) {
 								if ((*pointer_sixteen + Precision)
 										/ (10 * Precision)
 										!= *pointer_sixteen / (10 * Precision))
@@ -322,20 +316,20 @@ void ProcessKeyPressController(AEvent event) {
 										+ (uint16_t) Precision;
 							} else {
 								*pointer_sixteen =
-										(uint16_t) CurrentGadget->MaxValue;
+										(uint16_t) CurrentScreen->MaxValue;
 							}
 							convItoA(ptr, (uint16_t) *pointer_sixteen,
-									(int8_t *) CurrentGadget->Format_Or_Num);
+									(int8_t *) CurrentScreen->Format_Or_Num);
 							break;
 
 						case TYPE_INT_32:
 							break;
 #ifdef ChemCalNumber_Bigger
 						case TYPE_UINT_32:
-							pointer_thirtytwo = (uint32_t *) CurrentGadget->Value;
+							pointer_thirtytwo = (uint32_t *) CurrentScreen->Value;
 
 							if ((*pointer_thirtytwo + Precision)
-									< CurrentGadget->MaxValue) {
+									< CurrentScreen->MaxValue) {
 								if ((*pointer_thirtytwo + Precision)
 										/ (10 * Precision)
 										!= *pointer_thirtytwo / (10 * Precision))
@@ -345,23 +339,23 @@ void ProcessKeyPressController(AEvent event) {
 										+ Precision;
 							} else {
 								*pointer_thirtytwo =
-										CurrentGadget->MaxValue;
+										CurrentScreen->MaxValue;
 							}
 							convItoA(ptr, (int32_t) *pointer_thirtytwo,
-									(int8_t *) CurrentGadget->Format_Or_Num);
+									(int8_t *) CurrentScreen->Format_Or_Num);
 							break;
 #endif
 
 						case TYPE_PHONE:
-							pointer_eight = (uint8_t *) CurrentGadget->Value
+							pointer_eight = (uint8_t *) CurrentScreen->Value
 									+ CurrentColumn
 									- CurrentKeys[CurrentRow].LeftColumn;
 
 							if (*pointer_eight != '9') {
 								*pointer_eight = *pointer_eight + 1;
 							}
-							//convItoA (ptr,(uint32_t)thirtytwo, (int8_t *)CurrentGadget->Format_Or_Num);																																																																																																	
-							//*((uint32_t *)CurrentGadget->Value) = (uint32_t)thirtytwo;
+							//convItoA (ptr,(uint32_t)thirtytwo, (int8_t *)CurrentScreen->Format_Or_Num);																																																																																																	
+							//*((uint32_t *)CurrentScreen->Value) = (uint32_t)thirtytwo;
 
 							// fill in the leading spaces with zero's
 							PhoneCharacter = 0;
@@ -373,26 +367,26 @@ void ProcessKeyPressController(AEvent event) {
 							}
 							*ptr = 0x0;
 
-							ptr = (uint8_t *) CurrentGadget->Value;
+							ptr = (uint8_t *) CurrentScreen->Value;
 
 							break;
 
 						case TYPE_DECIMAL:
 							ptr = DecimalString;
 							pointer_thirtytwo =
-									(uint32_t *) CurrentGadget->Value;
+									(uint32_t *) CurrentScreen->Value;
 							thirtytwo =
-									(uint32_t) *((uint32_t *) CurrentGadget->Value);
+									(uint32_t) *((uint32_t *) CurrentScreen->Value);
 
 							data = lcdReadChar(CurrentColumn, CurrentRow) + 32;
 							if (data != '9') {
 								if (((uint32_t) thirtytwo + (uint32_t) Precision)
-										<= (uint32_t) CurrentGadget->MaxValue)
+										<= (uint32_t) CurrentScreen->MaxValue)
 									thirtytwo = thirtytwo + Precision;
 							}
 							convItoA(ptr, (int32_t) thirtytwo,
-									(int8_t *) CurrentGadget->Format_Or_Num);
-							*((uint32_t *) CurrentGadget->Value) =
+									(int8_t *) CurrentScreen->Format_Or_Num);
+							*((uint32_t *) CurrentScreen->Value) =
 									(uint32_t) thirtytwo;
 
 							// fill in the leading spaces with zero's
@@ -412,17 +406,17 @@ void ProcessKeyPressController(AEvent event) {
 						case TYPE_STRING:
 						case TYPE_SINGLESTRING:
 							pointer_eight =
-									(uint8_t *) CurrentGadget->Format_Or_Num;
+									(uint8_t *) CurrentScreen->Format_Or_Num;
 
 							if (*pointer_eight
-									== (uint8_t) CurrentGadget->MaxValue)
+									== (uint8_t) CurrentScreen->MaxValue)
 								*pointer_eight =
-										(uint8_t) CurrentGadget->MinValue;
+										(uint8_t) CurrentScreen->MinValue;
 							else
 								*pointer_eight = *pointer_eight + 1;
 
-							if (CurrentGadget->subtype == TYPE_STRING) {
-								ptr = (int8_t *) CurrentGadget->Value;
+							if (CurrentScreen->type == TYPE_STRING) {
+								ptr = (int8_t *) CurrentScreen->Value;
 
 								num = 0;
 								while (num != *pointer_eight) {
@@ -437,9 +431,9 @@ void ProcessKeyPressController(AEvent event) {
 
 						default:
 							break;
-						}	//CurrentGadget->subtype
-						lcdDrawString(CurrentGadget->Coords.x,
-								CurrentGadget->Coords.y, ptr);
+						}	//CurrentScreen->type
+						lcdDrawString(CurrentScreen->Coords.x,
+								CurrentScreen->Coords.y, ptr);
 					} // if CurrentKeys[CurrentRow].KeyType == KEY														
 					break;
 				default:
@@ -479,26 +473,26 @@ void ProcessKeyPressController(AEvent event) {
 				case MENUMAIN:
 					if (CurrentKeys[CurrentRow].KeyType == KEY) {
 						// we need to decrease value																
-						CurrentGadget =
-								(Gadgets *) CurrentKeys[CurrentRow].Value;
+						CurrentScreen =
+								(ScreenObj *) CurrentKeys[CurrentRow].Value;
 
 						Precision = GetPrecision((uint8_t) CurrentRow,
 								(uint8_t) CurrentColumn);
 						ptr = TempString;
 
-						switch (CurrentGadget->subtype) {
+						switch (CurrentScreen->type) {
 						case TYPE_INT_8:
 						case TYPE_UINT_8:
-							pointer_eight = (uint8_t *) CurrentGadget->Value;
+							pointer_eight = (uint8_t *) CurrentScreen->Value;
 
 							if (((*pointer_eight - Precision) > Precision)
 									&& ((*pointer_eight - Precision)
-											> (uint8_t) CurrentGadget->MinValue)
+											> (uint8_t) CurrentScreen->MinValue)
 									&& (*pointer_eight != 0)) {
 								*pointer_eight = *pointer_eight
 										- (uint8_t) Precision;
 							} else if (((*pointer_eight - Precision)
-									> (uint8_t) CurrentGadget->MinValue)
+									> (uint8_t) CurrentScreen->MinValue)
 									&& (*pointer_eight != 0)) {
 								*pointer_eight = *pointer_eight
 										- (uint8_t) Precision;
@@ -511,27 +505,27 @@ void ProcessKeyPressController(AEvent event) {
 								}
 							} else {
 								*pointer_eight =
-										(uint8_t) CurrentGadget->MinValue;
+										(uint8_t) CurrentScreen->MinValue;
 								CurrentColumn =
 										CurrentKeys[CurrentRow].RightColumn;
 								lcdSetCursor((uint8_t) CurrentRow,
 										(uint8_t) CurrentColumn);
 							}
 							convItoA(ptr, (uint8_t) *pointer_eight,
-									(int8_t *) CurrentGadget->Format_Or_Num);
+									(int8_t *) CurrentScreen->Format_Or_Num);
 							break;
 
 						case TYPE_INT_16:
 						case TYPE_UINT_16:
-							pointer_sixteen = (uint16_t *) CurrentGadget->Value;
+							pointer_sixteen = (uint16_t *) CurrentScreen->Value;
 							if (((*pointer_sixteen - Precision) > Precision)
 									&& ((*pointer_sixteen - Precision)
-											> (uint16_t) CurrentGadget->MinValue)
+											> (uint16_t) CurrentScreen->MinValue)
 									&& (*pointer_sixteen != 0)) {
 								*pointer_sixteen = *pointer_sixteen
 										- (uint16_t) Precision;
 							} else if (((*pointer_sixteen - Precision)
-									> (uint16_t) CurrentGadget->MinValue)
+									> (uint16_t) CurrentScreen->MinValue)
 									&& (*pointer_sixteen != 0)) {
 
 								*pointer_sixteen = *pointer_sixteen
@@ -545,29 +539,29 @@ void ProcessKeyPressController(AEvent event) {
 								}
 							} else {
 								*pointer_sixteen =
-										(uint16_t) CurrentGadget->MinValue;
+										(uint16_t) CurrentScreen->MinValue;
 								CurrentColumn =
 										CurrentKeys[CurrentRow].RightColumn;
 								lcdSetCursor((uint8_t) CurrentRow,
 										(uint8_t) CurrentColumn);
 							}
 							convItoA(ptr, (uint16_t) *pointer_sixteen,
-									(int8_t *) CurrentGadget->Format_Or_Num);
+									(int8_t *) CurrentScreen->Format_Or_Num);
 							break;
 
 						case TYPE_INT_32:
 							break;
 #ifdef ChemCalNumber_Bigger
 						case TYPE_UINT_32:
-							pointer_thirtytwo = (uint32_t *) CurrentGadget->Value;
+							pointer_thirtytwo = (uint32_t *) CurrentScreen->Value;
 							if (((*pointer_thirtytwo - Precision) > Precision)
 									&& ((*pointer_thirtytwo - Precision)
-											> CurrentGadget->MinValue)
+											> CurrentScreen->MinValue)
 									&& (*pointer_thirtytwo != 0)) {
 								*pointer_thirtytwo = *pointer_thirtytwo
 										- Precision;
 							} else if (((*pointer_thirtytwo - Precision)
-									> CurrentGadget->MinValue)
+									> CurrentScreen->MinValue)
 									&& (*pointer_thirtytwo != 0)) {
 
 								*pointer_thirtytwo = *pointer_thirtytwo
@@ -581,18 +575,18 @@ void ProcessKeyPressController(AEvent event) {
 								}
 							} else {
 								*pointer_thirtytwo =
-										CurrentGadget->MinValue;
+										CurrentScreen->MinValue;
 								CurrentColumn =
 										CurrentKeys[CurrentRow].RightColumn;
 								lcdSetCursor((uint8_t) CurrentRow,
 										(uint8_t) CurrentColumn);
 							}
 							convItoA(ptr, (int32_t) *pointer_thirtytwo,
-									(int8_t *) CurrentGadget->Format_Or_Num);
+									(int8_t *) CurrentScreen->Format_Or_Num);
 							break;
 #endif
 						case TYPE_PHONE:
-							pointer_eight = (uint8_t *) CurrentGadget->Value
+							pointer_eight = (uint8_t *) CurrentScreen->Value
 									+ CurrentColumn
 									- CurrentKeys[CurrentRow].LeftColumn;
 
@@ -605,19 +599,19 @@ void ProcessKeyPressController(AEvent event) {
 
 							ptr = DecimalString;
 							pointer_thirtytwo =
-									(uint32_t *) CurrentGadget->Value;
+									(uint32_t *) CurrentScreen->Value;
 							thirtytwo =
-									(uint32_t) *((uint32_t *) CurrentGadget->Value);
+									(uint32_t) *((uint32_t *) CurrentScreen->Value);
 
 							data = lcdReadChar(CurrentColumn, CurrentRow) + 32;
 							if (data != '9') {
 								if (((uint32_t) thirtytwo + (uint32_t) Precision)
-										<= (uint32_t) CurrentGadget->MaxValue)
+										<= (uint32_t) CurrentScreen->MaxValue)
 									thirtytwo = thirtytwo + Precision;
 							}
 							convItoA(ptr, (int32_t) thirtytwo,
-									(int8_t *) CurrentGadget->Format_Or_Num);
-							*((uint32_t *) CurrentGadget->Value) =
+									(int8_t *) CurrentScreen->Format_Or_Num);
+							*((uint32_t *) CurrentScreen->Value) =
 									(uint32_t) thirtytwo;
 
 							// fill in the leading spaces with zero's
@@ -637,17 +631,17 @@ void ProcessKeyPressController(AEvent event) {
 						case TYPE_STRING:
 						case TYPE_SINGLESTRING:
 							pointer_eight =
-									(uint8_t *) CurrentGadget->Format_Or_Num;
+									(uint8_t *) CurrentScreen->Format_Or_Num;
 
 							if (*pointer_eight
-									== (uint8_t) CurrentGadget->MinValue)
+									== (uint8_t) CurrentScreen->MinValue)
 								*pointer_eight =
-										(uint8_t) CurrentGadget->MaxValue;
+										(uint8_t) CurrentScreen->MaxValue;
 							else
 								*pointer_eight = *pointer_eight - 1;
 
-							if (CurrentGadget->subtype == TYPE_STRING) {
-								ptr = (int8_t *) CurrentGadget->Value;
+							if (CurrentScreen->type == TYPE_STRING) {
+								ptr = (int8_t *) CurrentScreen->Value;
 
 								num = 0;
 								while (num != *pointer_eight) {
@@ -663,8 +657,8 @@ void ProcessKeyPressController(AEvent event) {
 
 							break;
 						}
-						lcdDrawString(CurrentGadget->Coords.x,
-								CurrentGadget->Coords.y, (int8_t *) ptr);
+						lcdDrawString(CurrentScreen->Coords.x,
+								CurrentScreen->Coords.y, (int8_t *) ptr);
 					}
 					break;
 				default:
@@ -784,7 +778,7 @@ void jumpToScreen(uint8_t NextScreen) {
 	g_CurrentMenu = NextScreen;
 	switch (g_CurrentMenu) {
 	case MENUMAIN:
-		CurrentKeys = MenuMainKeys;
+		CurrentKeys = MainMenuKeys;
 		//lcdCursor(1, 0); // Cursor On
 		break;
 	}

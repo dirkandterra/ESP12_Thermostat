@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include "lcd.h"
+#include "DR_Keys.h"
 
 typedef enum {
 	TYPE_NONE = 0,
