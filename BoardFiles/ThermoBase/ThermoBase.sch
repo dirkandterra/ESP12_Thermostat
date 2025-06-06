@@ -51,6 +51,8 @@
 <layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
 <layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
 <layer number="57" name="tCAD" color="7" fill="1" visible="no" active="no"/>
+<layer number="88" name="SimResults" color="9" fill="1" visible="no" active="no"/>
+<layer number="89" name="SimProbes" color="9" fill="1" visible="no" active="no"/>
 <layer number="90" name="Modules" color="5" fill="1" visible="no" active="no"/>
 <layer number="91" name="Nets" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="92" name="Busses" color="1" fill="1" visible="yes" active="yes"/>
@@ -3424,6 +3426,16 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 <wire x1="4" y1="-1.8" x2="6" y2="-1.8" width="0.1524" layer="21"/>
 <wire x1="6" y1="-1.8" x2="6" y2="-3" width="0.1524" layer="21"/>
 </package>
+<package name="PJ-102A_2MM_HOLES">
+<pad name="1" x="0" y="0" drill="2.1" diameter="3.81" shape="octagon"/>
+<pad name="2" x="0" y="6.35" drill="2.1" diameter="3.81" shape="octagon"/>
+<pad name="3" x="-5.08" y="3.175" drill="2.1" diameter="3.81" shape="octagon"/>
+<wire x1="-5" y1="-0.5" x2="-5" y2="14" width="0.127" layer="21"/>
+<wire x1="5" y1="-0.5" x2="5" y2="14" width="0.127" layer="21"/>
+<wire x1="5" y1="14" x2="-5" y2="14" width="0.127" layer="21"/>
+<wire x1="-5" y1="-0.5" x2="5" y2="-0.5" width="0.127" layer="21"/>
+<text x="-4" y="12" size="1.27" layer="21">&gt;NAME</text>
+</package>
 </packages>
 <symbols>
 <symbol name="ESP-12E">
@@ -3673,6 +3685,16 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 </gates>
 <devices>
 <device name="" package="PJ-102A">
+<connects>
+<connect gate="G$1" pin="RING" pad="2"/>
+<connect gate="G$1" pin="RING_SW" pad="3"/>
+<connect gate="G$1" pin="TIP" pad="1"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="PJ-102A_2MM_HOLES" package="PJ-102A_2MM_HOLES">
 <connects>
 <connect gate="G$1" pin="RING" pad="2"/>
 <connect gate="G$1" pin="RING_SW" pad="3"/>
@@ -6282,7 +6304,7 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 <part name="+3V2" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="+3V3" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+3V3" device=""/>
 <part name="GND3" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
-<part name="CON1" library="DR" deviceset="BARREL_JACK_3PIN" device=""/>
+<part name="CON1" library="DR" deviceset="BARREL_JACK_3PIN" device="PJ-102A_2MM_HOLES" value="BARREL_JACK_3PINPJ-102A_2MM_HOLES"/>
 <part name="C1" library="DR" deviceset="C-US" device="C0805"/>
 <part name="C2" library="DR" deviceset="C-US" device="C0805"/>
 <part name="GND4" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
@@ -6436,13 +6458,13 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 <instance part="GND9" gate="1" x="22.86" y="63.5" smashed="yes">
 <attribute name="VALUE" x="20.32" y="60.96" size="1.778" layer="96"/>
 </instance>
-<instance part="R4" gate="G$1" x="111.76" y="53.34" smashed="yes" rot="R90">
-<attribute name="NAME" x="110.2614" y="49.53" size="1.778" layer="95" rot="R90"/>
-<attribute name="VALUE" x="115.062" y="49.53" size="1.778" layer="96" rot="R90"/>
+<instance part="R4" gate="G$1" x="111.76" y="55.88" smashed="yes" rot="R90">
+<attribute name="NAME" x="110.2614" y="52.07" size="1.778" layer="95" rot="R90"/>
+<attribute name="VALUE" x="115.062" y="52.07" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="R5" gate="G$1" x="116.84" y="50.8" smashed="yes" rot="R90">
-<attribute name="NAME" x="115.3414" y="46.99" size="1.778" layer="95" rot="R90"/>
-<attribute name="VALUE" x="120.142" y="46.99" size="1.778" layer="96" rot="R90"/>
+<instance part="R5" gate="G$1" x="116.84" y="55.88" smashed="yes" rot="R90">
+<attribute name="NAME" x="115.3414" y="52.07" size="1.778" layer="95" rot="R90"/>
+<attribute name="VALUE" x="120.142" y="52.07" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="JP3" gate="A" x="20.32" y="10.16" smashed="yes">
 <attribute name="NAME" x="13.97" y="18.415" size="1.778" layer="95"/>
@@ -6457,8 +6479,8 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 <instance part="GND10" gate="1" x="30.48" y="-2.54" smashed="yes">
 <attribute name="VALUE" x="27.94" y="-5.08" size="1.778" layer="96"/>
 </instance>
-<instance part="+3V5" gate="G$1" x="116.84" y="63.5" smashed="yes">
-<attribute name="VALUE" x="114.3" y="58.42" size="1.778" layer="96" rot="R90"/>
+<instance part="+3V5" gate="G$1" x="116.84" y="68.58" smashed="yes">
+<attribute name="VALUE" x="114.3" y="63.5" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="RLY1" gate="G$1" x="190.5" y="58.42" smashed="yes">
 <attribute name="NAME" x="178.308" y="69.596" size="1.27" layer="95"/>
@@ -6658,11 +6680,10 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 <segment>
 <pinref part="R5" gate="G$1" pin="2"/>
 <pinref part="+3V5" gate="G$1" pin="+3V3"/>
-<wire x1="116.84" y1="55.88" x2="116.84" y2="58.42" width="0.1524" layer="91"/>
 <pinref part="R4" gate="G$1" pin="2"/>
-<wire x1="116.84" y1="58.42" x2="116.84" y2="60.96" width="0.1524" layer="91"/>
-<wire x1="116.84" y1="58.42" x2="111.76" y2="58.42" width="0.1524" layer="91"/>
-<junction x="116.84" y="58.42"/>
+<wire x1="116.84" y1="60.96" x2="116.84" y2="66.04" width="0.1524" layer="91"/>
+<wire x1="116.84" y1="60.96" x2="111.76" y2="60.96" width="0.1524" layer="91"/>
+<junction x="116.84" y="60.96"/>
 </segment>
 <segment>
 <pinref part="JP1" gate="A" pin="1"/>
@@ -6687,6 +6708,7 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 <label x="91.44" y="48.26" size="1.778" layer="95"/>
 <pinref part="R4" gate="G$1" pin="1"/>
 <wire x1="88.9" y1="48.26" x2="111.76" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="111.76" y1="50.8" x2="111.76" y2="48.26" width="0.1524" layer="91"/>
 <wire x1="111.76" y1="48.26" x2="119.38" y2="48.26" width="0.1524" layer="91"/>
 <junction x="111.76" y="48.26"/>
 </segment>
@@ -6712,8 +6734,9 @@ Source: http://www.onsemi.co.jp .. LM137M-D.PDF</description>
 <label x="91.44" y="45.72" size="1.778" layer="95"/>
 <pinref part="R5" gate="G$1" pin="1"/>
 <wire x1="88.9" y1="45.72" x2="116.84" y2="45.72" width="0.1524" layer="91"/>
-<wire x1="116.84" y1="45.72" x2="119.38" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="116.84" y1="45.72" x2="116.84" y2="50.8" width="0.1524" layer="91"/>
 <junction x="116.84" y="45.72"/>
+<wire x1="116.84" y1="45.72" x2="119.38" y2="45.72" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="JP3" gate="A" pin="3"/>
